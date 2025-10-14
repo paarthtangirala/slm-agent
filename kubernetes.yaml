@@ -1,0 +1,302 @@
+# Kubernetes deployment manifests for SLM Personal Agent
+# Apply with: kubectl apply -f kubernetes.yaml
+
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: slm-agent
+
+---
+# ConfigMap for application configuration
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: slm-agent-config
+  namespace: slm-agent
+data:
+  OLLAMA_BASE_URL: "http://ollama-service:11434"
+  OLLAMA_MODEL: "phi3:mini"
+  ENVIRONMENT: "production"
+  DEBUG: "false"
+  SEARCH_PROVIDER: "serpapi"
+
+---
+# Secret for API keys (create manually)
+apiVersion: v1
+kind: Secret
+metadata:
+  name: slm-agent-secrets
+  namespace: slm-agent
+type: Opaque
+stringData:
+  SERPAPI_KEY: "your_serpapi_key_here"
+  BING_SEARCH_KEY: "your_bing_key_here"
+  SECRET_KEY: "your_secret_key_here"
+
+---
+# Persistent Volume for Ollama models
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: ollama-models-pvc
+  namespace: slm-agent
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 10Gi
+
+---
+# Persistent Volume for uploaded files
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: uploads-pvc
+  namespace: slm-agent
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 5Gi
+
+---
+# Persistent Volume for ChromaDB
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: chromadb-pvc
+  namespace: slm-agent
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 2Gi
+
+---
+# Ollama Deployment
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: ollama
+  namespace: slm-agent
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: ollama
+  template:
+    metadata:
+      labels:
+        app: ollama
+    spec:
+      containers:
+      - name: ollama
+        image: ollama/ollama:latest
+        ports:
+        - containerPort: 11434
+        env:
+        - name: OLLAMA_HOST
+          value: "0.0.0.0"
+        volumeMounts:
+        - name: ollama-models
+          mountPath: /root/.ollama
+        resources:
+          requests:
+            memory: "2Gi"
+            cpu: "1000m"
+          limits:
+            memory: "4Gi"
+            cpu: "2000m"
+        livenessProbe:
+          httpGet:
+            path: /api/tags
+            port: 11434
+          initialDelaySeconds: 60
+          periodSeconds: 30
+        readinessProbe:
+          httpGet:
+            path: /api/tags
+            port: 11434
+          initialDelaySeconds: 30
+          periodSeconds: 10
+      volumes:
+      - name: ollama-models
+        persistentVolumeClaim:
+          claimName: ollama-models-pvc
+
+---
+# Ollama Service
+apiVersion: v1
+kind: Service
+metadata:
+  name: ollama-service
+  namespace: slm-agent
+spec:
+  selector:
+    app: ollama
+  ports:
+  - port: 11434
+    targetPort: 11434
+  type: ClusterIP
+
+---
+# SLM Agent Deployment
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: slm-agent
+  namespace: slm-agent
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: slm-agent
+  template:
+    metadata:
+      labels:
+        app: slm-agent
+    spec:
+      initContainers:
+      - name: wait-for-ollama
+        image: busybox:latest
+        command: ['sh', '-c', 'until wget -q --spider http://ollama-service:11434/api/tags; do echo waiting for ollama; sleep 5; done;']
+      containers:
+      - name: slm-agent
+        image: slm-personal-agent:latest
+        ports:
+        - containerPort: 8000
+        envFrom:
+        - configMapRef:
+            name: slm-agent-config
+        - secretRef:
+            name: slm-agent-secrets
+        volumeMounts:
+        - name: uploads
+          mountPath: /app/uploads
+        - name: chromadb
+          mountPath: /app/chromadb
+        resources:
+          requests:
+            memory: "1Gi"
+            cpu: "500m"
+          limits:
+            memory: "2Gi"
+            cpu: "1000m"
+        livenessProbe:
+          httpGet:
+            path: /health
+            port: 8000
+          initialDelaySeconds: 30
+          periodSeconds: 30
+        readinessProbe:
+          httpGet:
+            path: /health
+            port: 8000
+          initialDelaySeconds: 10
+          periodSeconds: 10
+      volumes:
+      - name: uploads
+        persistentVolumeClaim:
+          claimName: uploads-pvc
+      - name: chromadb
+        persistentVolumeClaim:
+          claimName: chromadb-pvc
+
+---
+# SLM Agent Service
+apiVersion: v1
+kind: Service
+metadata:
+  name: slm-agent-service
+  namespace: slm-agent
+spec:
+  selector:
+    app: slm-agent
+  ports:
+  - port: 8000
+    targetPort: 8000
+  type: ClusterIP
+
+---
+# Ingress for external access
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: slm-agent-ingress
+  namespace: slm-agent
+  annotations:
+    nginx.ingress.kubernetes.io/rewrite-target: /
+    nginx.ingress.kubernetes.io/proxy-body-size: "100m"
+    nginx.ingress.kubernetes.io/proxy-read-timeout: "300"
+    nginx.ingress.kubernetes.io/proxy-send-timeout: "300"
+    # cert-manager.io/cluster-issuer: "letsencrypt-prod"  # Uncomment for SSL
+spec:
+  # tls:  # Uncomment for SSL
+  # - hosts:
+  #   - your-domain.com
+  #   secretName: slm-agent-tls
+  rules:
+  - host: your-domain.com  # Change to your domain
+    http:
+      paths:
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: slm-agent-service
+            port:
+              number: 8000
+
+---
+# HorizontalPodAutoscaler for SLM Agent
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+metadata:
+  name: slm-agent-hpa
+  namespace: slm-agent
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: slm-agent
+  minReplicas: 2
+  maxReplicas: 10
+  metrics:
+  - type: Resource
+    resource:
+      name: cpu
+      target:
+        type: Utilization
+        averageUtilization: 70
+  - type: Resource
+    resource:
+      name: memory
+      target:
+        type: Utilization
+        averageUtilization: 80
+
+---
+# NetworkPolicy for security (optional)
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: slm-agent-netpol
+  namespace: slm-agent
+spec:
+  podSelector: {}
+  policyTypes:
+  - Ingress
+  - Egress
+  ingress:
+  - from:
+    - namespaceSelector:
+        matchLabels:
+          name: ingress-nginx
+  - from:
+    - podSelector: {}
+  egress:
+  - to: []  # Allow all egress (adjust as needed)

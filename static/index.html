@@ -1,0 +1,1298 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🤖 SLM Personal Agent</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .container {
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            width: 90%;
+            max-width: 1200px;
+            height: 90vh;
+            display: flex;
+            overflow: hidden;
+        }
+
+        .sidebar {
+            width: 320px;
+            background: #f8f9fa;
+            border-right: 1px solid #e9ecef;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            overflow-y: auto;
+        }
+
+        .logo {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .logo h1 {
+            color: #495057;
+            font-size: 24px;
+            margin-bottom: 5px;
+        }
+
+        .logo p {
+            color: #6c757d;
+            font-size: 14px;
+        }
+
+        .mode-selector {
+            margin-bottom: 20px;
+        }
+
+        .mode-btn {
+            width: 100%;
+            padding: 12px;
+            margin: 5px 0;
+            border: 2px solid #e9ecef;
+            border-radius: 10px;
+            background: white;
+            cursor: pointer;
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            font-size: 14px;
+        }
+
+        .mode-btn:hover {
+            border-color: #667eea;
+            background: #f8f9ff;
+        }
+
+        .mode-btn.active {
+            border-color: #667eea;
+            background: #667eea;
+            color: white;
+        }
+
+        .mode-btn .icon {
+            margin-right: 10px;
+            font-size: 16px;
+        }
+
+        .conversations {
+            flex: 1;
+            margin: 20px 0;
+        }
+
+        .conversations h3 {
+            color: #495057;
+            font-size: 14px;
+            margin-bottom: 15px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .new-chat-btn {
+            background: #667eea;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            padding: 6px 12px;
+            font-size: 12px;
+            cursor: pointer;
+            transition: background 0.3s;
+        }
+
+        .new-chat-btn:hover {
+            background: #5a6fd8;
+        }
+
+        .conversation-list {
+            max-height: 300px;
+            overflow-y: auto;
+        }
+
+        .conversation-item {
+            padding: 10px;
+            margin: 5px 0;
+            background: white;
+            border: 1px solid #e9ecef;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-size: 13px;
+        }
+
+        .conversation-item:hover {
+            border-color: #667eea;
+            background: #f8f9ff;
+        }
+
+        .conversation-item.active {
+            border-color: #667eea;
+            background: #667eea;
+            color: white;
+        }
+
+        .conversation-title {
+            font-weight: 600;
+            margin-bottom: 3px;
+        }
+
+        .conversation-date {
+            font-size: 11px;
+            opacity: 0.7;
+        }
+
+        .upload-section {
+            margin: 20px 0;
+        }
+
+        .upload-section h3 {
+            color: #495057;
+            font-size: 14px;
+            margin-bottom: 15px;
+        }
+
+        .upload-area {
+            border: 2px dashed #dee2e6;
+            border-radius: 10px;
+            padding: 20px;
+            text-align: center;
+            background: white;
+            cursor: pointer;
+            transition: all 0.3s;
+            position: relative;
+        }
+
+        .upload-area:hover {
+            border-color: #667eea;
+            background: #f8f9ff;
+        }
+
+        .upload-area.dragover {
+            border-color: #667eea;
+            background: #e7f3ff;
+            transform: scale(1.02);
+        }
+
+        .upload-area input[type="file"] {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            opacity: 0;
+            cursor: pointer;
+        }
+
+        .upload-icon {
+            font-size: 24px;
+            margin-bottom: 10px;
+            color: #6c757d;
+        }
+
+        .upload-text {
+            font-size: 12px;
+            color: #6c757d;
+            margin-bottom: 8px;
+        }
+
+        .upload-hint {
+            font-size: 10px;
+            color: #adb5bd;
+        }
+
+        .file-list {
+            max-height: 150px;
+            overflow-y: auto;
+            margin-top: 15px;
+        }
+
+        .file-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 8px;
+            margin: 3px 0;
+            background: white;
+            border-radius: 6px;
+            border: 1px solid #e9ecef;
+            font-size: 11px;
+        }
+
+        .file-name {
+            flex: 1;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        .file-type {
+            background: #e9ecef;
+            color: #495057;
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-size: 9px;
+            margin-left: 5px;
+        }
+
+        .delete-file {
+            background: #dc3545;
+            color: white;
+            border: none;
+            border-radius: 3px;
+            padding: 2px 6px;
+            font-size: 9px;
+            cursor: pointer;
+            margin-left: 5px;
+        }
+
+        .delete-file:hover {
+            background: #c82333;
+        }
+
+        .upload-progress {
+            display: none;
+            margin-top: 10px;
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 4px;
+            background: #e9ecef;
+            border-radius: 2px;
+            overflow: hidden;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: #667eea;
+            width: 0%;
+            transition: width 0.3s;
+        }
+
+        .status {
+            background: #d4edda;
+            border: 1px solid #c3e6cb;
+            border-radius: 10px;
+            padding: 15px;
+            margin-top: 20px;
+        }
+
+        .status-dot {
+            display: inline-block;
+            width: 8px;
+            height: 8px;
+            background: #28a745;
+            border-radius: 50%;
+            margin-right: 8px;
+        }
+
+        .main-content {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .chat-header {
+            padding: 20px;
+            border-bottom: 1px solid #e9ecef;
+            background: white;
+        }
+
+        .chat-header h2 {
+            color: #495057;
+            margin-bottom: 5px;
+        }
+
+        .chat-header p {
+            color: #6c757d;
+            font-size: 14px;
+        }
+
+        .chat-messages {
+            flex: 1;
+            padding: 20px;
+            overflow-y: auto;
+            background: #f8f9fa;
+        }
+
+        .message {
+            margin-bottom: 20px;
+            display: flex;
+            align-items: flex-start;
+        }
+
+        .message.user {
+            justify-content: flex-end;
+        }
+
+        .message-content {
+            max-width: 70%;
+            padding: 15px 20px;
+            border-radius: 20px;
+            font-size: 14px;
+            line-height: 1.5;
+        }
+
+        .message.user .message-content {
+            background: #667eea;
+            color: white;
+            border-bottom-right-radius: 5px;
+        }
+
+        .message.assistant .message-content {
+            background: white;
+            border: 1px solid #e9ecef;
+            border-bottom-left-radius: 5px;
+        }
+
+        .message-avatar {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            margin: 0 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 14px;
+        }
+
+        .message.user .message-avatar {
+            background: #6c757d;
+            color: white;
+        }
+
+        .message.assistant .message-avatar {
+            background: #667eea;
+            color: white;
+        }
+
+        .chat-input {
+            padding: 20px;
+            border-top: 1px solid #e9ecef;
+            background: white;
+        }
+
+        .input-form {
+            display: flex;
+            gap: 10px;
+        }
+
+        .input-group {
+            flex: 1;
+            position: relative;
+        }
+
+        .input-field {
+            width: 100%;
+            padding: 15px 20px;
+            border: 2px solid #e9ecef;
+            border-radius: 25px;
+            font-size: 14px;
+            outline: none;
+            transition: border-color 0.3s;
+        }
+
+        .input-field:focus {
+            border-color: #667eea;
+        }
+
+        .send-btn {
+            padding: 15px 30px;
+            background: #667eea;
+            color: white;
+            border: none;
+            border-radius: 25px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 600;
+            transition: background 0.3s;
+        }
+
+        .send-btn:hover {
+            background: #5a6fd8;
+        }
+
+        .send-btn:disabled {
+            background: #6c757d;
+            cursor: not-allowed;
+        }
+
+        .loading {
+            display: none;
+            text-align: center;
+            padding: 20px;
+            color: #6c757d;
+        }
+
+        .loading.show {
+            display: block;
+        }
+
+        .result-section {
+            margin-top: 15px;
+            padding: 15px;
+            background: #f8f9ff;
+            border-radius: 10px;
+            border-left: 4px solid #667eea;
+        }
+
+        .result-title {
+            font-weight: 600;
+            color: #495057;
+            margin-bottom: 10px;
+        }
+
+        .search-results {
+            margin-top: 10px;
+        }
+
+        .search-result {
+            margin-bottom: 15px;
+            padding: 10px;
+            background: white;
+            border-radius: 8px;
+            border: 1px solid #e9ecef;
+        }
+
+        .search-result-title {
+            font-weight: 600;
+            color: #667eea;
+            margin-bottom: 5px;
+        }
+
+        .search-result-url {
+            font-size: 12px;
+            color: #28a745;
+            margin-bottom: 5px;
+        }
+
+        .search-result-snippet {
+            font-size: 13px;
+            color: #6c757d;
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                width: 100%;
+                height: 100vh;
+                border-radius: 0;
+            }
+            
+            .sidebar {
+                width: 250px;
+            }
+            
+            .message-content {
+                max-width: 85%;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="sidebar">
+            <div class="logo">
+                <h1>🤖 SLM Agent</h1>
+                <p>Local AI Assistant</p>
+            </div>
+            
+            <div class="mode-selector">
+                <button class="mode-btn active" data-mode="chat">
+                    <span class="icon">💬</span>
+                    Chat & Summarize
+                </button>
+                <button class="mode-btn" data-mode="email">
+                    <span class="icon">📧</span>
+                    Draft Email
+                </button>
+                <button class="mode-btn" data-mode="search">
+                    <span class="icon">🔍</span>
+                    Web Search
+                </button>
+                <button class="mode-btn" data-mode="docs">
+                    <span class="icon">📚</span>
+                    Query Documents
+                </button>
+                <button class="mode-btn" data-mode="code">
+                    <span class="icon">👨‍💻</span>
+                    Code Analysis
+                </button>
+                <button class="mode-btn" data-mode="data">
+                    <span class="icon">📊</span>
+                    Data Insights
+                </button>
+                <button class="mode-btn" data-mode="meeting">
+                    <span class="icon">📋</span>
+                    Meeting Notes
+                </button>
+                <button class="mode-btn" data-mode="research">
+                    <span class="icon">📄</span>
+                    Research Papers
+                </button>
+            </div>
+            
+            <div class="conversations">
+                <h3>
+                    Conversations
+                    <button class="new-chat-btn" id="new-chat-btn">+ New</button>
+                </h3>
+                <div class="conversation-list" id="conversation-list">
+                    <!-- Conversations will be loaded here -->
+                </div>
+            </div>
+            
+            <div class="upload-section">
+                <h3>📁 Upload Documents</h3>
+                <div class="upload-area" id="upload-area">
+                    <input type="file" id="file-input" multiple accept=".pdf,.docx,.xlsx,.txt,.md,.py,.js,.png,.jpg,.jpeg">
+                    <div class="upload-icon">📄</div>
+                    <div class="upload-text">Drop files here or click to browse</div>
+                    <div class="upload-hint">PDF, Word, Excel, images, code files</div>
+                </div>
+                <div class="upload-progress" id="upload-progress">
+                    <div class="progress-bar">
+                        <div class="progress-fill" id="progress-fill"></div>
+                    </div>
+                    <div style="font-size: 10px; text-align: center; margin-top: 5px;" id="upload-status">Uploading...</div>
+                </div>
+                <div class="file-list" id="file-list">
+                    <!-- Uploaded files will appear here -->
+                </div>
+            </div>
+            
+            <div class="status">
+                <div>
+                    <span class="status-dot"></span>
+                    <strong>Status: Online</strong>
+                </div>
+                <div style="margin-top: 10px; font-size: 12px; color: #495057;">
+                    Model: phi3:mini<br>
+                    Search: SerpAPI (Google)
+                </div>
+            </div>
+        </div>
+        
+        <div class="main-content">
+            <div class="chat-header">
+                <h2 id="mode-title">Chat & Summarize</h2>
+                <p id="mode-description">Ask questions, summarize text, or have a conversation</p>
+            </div>
+            
+            <div class="chat-messages" id="chat-messages">
+                <div class="message assistant">
+                    <div class="message-avatar">🤖</div>
+                    <div class="message-content">
+                        Welcome to your personal SLM Agent! I'm running locally on your machine with phi3:mini. I can help you with:
+                        <br><br>
+                        • <strong>Summarizing</strong> long texts and conversations<br>
+                        • <strong>Drafting</strong> professional emails<br>
+                        • <strong>Searching</strong> the web with AI analysis<br>
+                        • <strong>Querying</strong> your local documents<br>
+                        • <strong>Analyzing</strong> code for quality and best practices<br>
+                        • <strong>Extracting insights</strong> from data and charts<br>
+                        • <strong>Processing</strong> meeting notes for action items<br>
+                        • <strong>Summarizing</strong> research papers and findings<br>
+                        <br>
+                        What would you like to do today?
+                    </div>
+                </div>
+            </div>
+            
+            <div class="loading" id="loading">
+                <div>🤖 Thinking...</div>
+            </div>
+            
+            <div class="chat-input">
+                <form class="input-form" id="input-form">
+                    <div class="input-group">
+                        <input type="text" class="input-field" id="user-input" 
+                               placeholder="Type your message here..." autocomplete="off">
+                    </div>
+                    <button type="submit" class="send-btn" id="send-btn">Send</button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // App state
+        let currentMode = 'chat';
+        let currentConversationId = null;
+        const baseURL = '';
+        let conversations = [];
+        
+        // Mode configurations
+        const modes = {
+            chat: {
+                title: 'Chat & Summarize',
+                description: 'Ask questions, summarize text, or have a conversation',
+                placeholder: 'Type your message or paste text to summarize...',
+                endpoint: '/summarize'
+            },
+            email: {
+                title: 'Draft Email',
+                description: 'Generate professional emails with context',
+                placeholder: 'Describe the email you want to draft...',
+                endpoint: '/draft-email'
+            },
+            search: {
+                title: 'Web Search',
+                description: 'Search the web and get AI-powered summaries',
+                placeholder: 'Search for anything...',
+                endpoint: '/web-search'
+            },
+            docs: {
+                title: 'Query Documents',
+                description: 'Ask questions about your uploaded documents',
+                placeholder: 'Ask about your documents...',
+                endpoint: '/local-query'
+            },
+            code: {
+                title: 'Code Analysis',
+                description: 'Analyze code for quality, syntax, and best practices',
+                placeholder: 'Paste your code here for analysis...',
+                endpoint: '/analyze-code'
+            },
+            data: {
+                title: 'Data Insights',
+                description: 'Analyze data and generate visualization insights',
+                placeholder: 'Enter data or filename to analyze...',
+                endpoint: '/visualize-data'
+            },
+            meeting: {
+                title: 'Meeting Notes',
+                description: 'Extract action items and decisions from meeting notes',
+                placeholder: 'Paste your meeting notes here...',
+                endpoint: '/extract-meeting-notes'
+            },
+            research: {
+                title: 'Research Papers',
+                description: 'Analyze research papers and extract key findings',
+                placeholder: 'Paste research paper content or abstract...',
+                endpoint: '/analyze-research-paper'
+            }
+        };
+
+        // DOM elements
+        const chatMessages = document.getElementById('chat-messages');
+        const userInput = document.getElementById('user-input');
+        const sendBtn = document.getElementById('send-btn');
+        const inputForm = document.getElementById('input-form');
+        const loading = document.getElementById('loading');
+        const modeTitle = document.getElementById('mode-title');
+        const modeDescription = document.getElementById('mode-description');
+        const conversationList = document.getElementById('conversation-list');
+        const newChatBtn = document.getElementById('new-chat-btn');
+        const uploadArea = document.getElementById('upload-area');
+        const fileInput = document.getElementById('file-input');
+        const uploadProgress = document.getElementById('upload-progress');
+        const progressFill = document.getElementById('progress-fill');
+        const uploadStatus = document.getElementById('upload-status');
+        const fileList = document.getElementById('file-list');
+
+        // Initialize
+        document.addEventListener('DOMContentLoaded', function() {
+            updateModeUI();
+            
+            // Load conversations in background (non-blocking)
+            setTimeout(() => {
+                loadConversations();
+                checkHealth();
+            }, 100);
+            
+            // Mode switching
+            document.querySelectorAll('.mode-btn').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    const mode = this.dataset.mode;
+                    switchMode(mode);
+                });
+            });
+
+            // Form submission
+            inputForm.addEventListener('submit', function(e) {
+                e.preventDefault();
+                handleSubmit();
+            });
+            
+            // New chat button
+            newChatBtn.addEventListener('click', function() {
+                startNewConversation();
+            });
+            
+            // File upload functionality
+            setupFileUpload();
+            loadDocuments();
+        });
+
+        function switchMode(mode) {
+            currentMode = mode;
+            
+            // Update active button
+            document.querySelectorAll('.mode-btn').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            document.querySelector(`[data-mode="${mode}"]`).classList.add('active');
+            
+            updateModeUI();
+        }
+
+        function updateModeUI() {
+            const config = modes[currentMode];
+            modeTitle.textContent = config.title;
+            modeDescription.textContent = config.description;
+            userInput.placeholder = config.placeholder;
+        }
+
+        async function checkHealth() {
+            try {
+                const response = await fetch('/health');
+                const data = await response.json();
+                
+                const statusEl = document.querySelector('.status');
+                if (data.status === 'healthy' && data.ollama_connected) {
+                    statusEl.innerHTML = `
+                        <div>
+                            <span class="status-dot"></span>
+                            <strong>Status: Online</strong>
+                        </div>
+                        <div style="margin-top: 10px; font-size: 12px; color: #495057;">
+                            Model: phi3:mini<br>
+                            Search: SerpAPI (Google)
+                        </div>
+                    `;
+                } else {
+                    statusEl.innerHTML = `
+                        <div>
+                            <span class="status-dot" style="background: #dc3545;"></span>
+                            <strong>Status: Offline</strong>
+                        </div>
+                        <div style="margin-top: 10px; font-size: 12px; color: #495057;">
+                            Check server connection
+                        </div>
+                    `;
+                }
+            } catch (error) {
+                console.error('Health check failed:', error);
+            }
+        }
+
+        function addMessage(content, isUser = false, isHTML = false) {
+            const messageDiv = document.createElement('div');
+            messageDiv.className = `message ${isUser ? 'user' : 'assistant'}`;
+            
+            const avatar = document.createElement('div');
+            avatar.className = 'message-avatar';
+            avatar.textContent = isUser ? '👤' : '🤖';
+            
+            const contentDiv = document.createElement('div');
+            contentDiv.className = 'message-content';
+            
+            if (isHTML) {
+                contentDiv.innerHTML = content;
+            } else {
+                contentDiv.textContent = content;
+            }
+            
+            if (isUser) {
+                messageDiv.appendChild(contentDiv);
+                messageDiv.appendChild(avatar);
+            } else {
+                messageDiv.appendChild(avatar);
+                messageDiv.appendChild(contentDiv);
+            }
+            
+            chatMessages.appendChild(messageDiv);
+            chatMessages.scrollTop = chatMessages.scrollHeight;
+        }
+
+        function setLoading(show) {
+            loading.classList.toggle('show', show);
+            sendBtn.disabled = show;
+            if (show) {
+                chatMessages.scrollTop = chatMessages.scrollHeight;
+            }
+        }
+
+        async function loadConversations() {
+            try {
+                // Show loading in conversation list
+                conversationList.innerHTML = '<div style="text-align: center; padding: 20px; color: #6c757d; font-size: 12px;">Loading conversations...</div>';
+                
+                const response = await fetch('/conversations');
+                const data = await response.json();
+                conversations = data.conversations;
+                renderConversations();
+            } catch (error) {
+                console.error('Failed to load conversations:', error);
+                conversationList.innerHTML = '<div style="text-align: center; padding: 20px; color: #dc3545; font-size: 12px;">Failed to load</div>';
+            }
+        }
+
+        function renderConversations() {
+            conversationList.innerHTML = '';
+            
+            conversations.forEach(conv => {
+                const item = document.createElement('div');
+                item.className = 'conversation-item';
+                if (conv.id === currentConversationId) {
+                    item.classList.add('active');
+                }
+                
+                const date = new Date(conv.updated_at).toLocaleDateString();
+                item.innerHTML = `
+                    <div class="conversation-title">${conv.title}</div>
+                    <div class="conversation-date">${date}</div>
+                `;
+                
+                item.addEventListener('click', () => {
+                    selectConversation(conv.id);
+                });
+                
+                conversationList.appendChild(item);
+            });
+        }
+
+        async function selectConversation(conversationId) {
+            currentConversationId = conversationId;
+            renderConversations();
+            
+            // Load conversation messages
+            try {
+                const response = await fetch(`/conversations/${conversationId}/messages`);
+                const data = await response.json();
+                
+                // Clear current messages
+                chatMessages.innerHTML = '';
+                
+                // Add messages to chat
+                data.messages.forEach(msg => {
+                    addMessage(msg.content, msg.role === 'user', false);
+                });
+                
+            } catch (error) {
+                console.error('Failed to load conversation:', error);
+                addMessage('❌ Failed to load conversation', false);
+            }
+        }
+
+        function startNewConversation() {
+            currentConversationId = null;
+            
+            // Clear chat messages
+            chatMessages.innerHTML = '';
+            
+            // Add welcome message
+            addMessage(`Welcome to your personal SLM Agent! I'm running locally on your machine with phi3:mini. I can help you with:
+                <br><br>
+                • <strong>Summarizing</strong> long texts and conversations<br>
+                • <strong>Drafting</strong> professional emails<br>
+                • <strong>Searching</strong> the web with AI analysis<br>
+                • <strong>Querying</strong> your local documents<br>
+                • <strong>Analyzing</strong> code for quality and best practices<br>
+                • <strong>Extracting insights</strong> from data and charts<br>
+                • <strong>Processing</strong> meeting notes for action items<br>
+                • <strong>Summarizing</strong> research papers and findings<br>
+                <br>
+                What would you like to do today?`, false, true);
+            
+            // Update conversation list
+            renderConversations();
+        }
+
+        async function handleSubmit() {
+            const message = userInput.value.trim();
+            if (!message) return;
+
+            // Add user message to UI
+            addMessage(message, true);
+            userInput.value = '';
+            setLoading(true);
+
+            try {
+                let response;
+                
+                if (currentMode === 'chat') {
+                    // Use the new chat endpoint with memory
+                    response = await fetch('/chat', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            message: message,
+                            conversation_id: currentConversationId,
+                            mode: currentMode
+                        })
+                    });
+                } else {
+                    // Use original endpoints for other modes
+                    switch (currentMode) {
+                        case 'email':
+                            response = await fetch('/draft-email', {
+                                method: 'POST',
+                                headers: { 'Content-Type': 'application/json' },
+                                body: JSON.stringify({
+                                    recipient: 'recipient@example.com',
+                                    subject: 'Email Request',
+                                    context: message,
+                                    tone: 'professional'
+                                })
+                            });
+                            break;
+                            
+                        case 'search':
+                            response = await fetch('/web-search', {
+                                method: 'POST',
+                                headers: { 'Content-Type': 'application/json' },
+                                body: JSON.stringify({
+                                    query: message,
+                                    max_results: 3
+                                })
+                            });
+                            break;
+                            
+                        case 'docs':
+                            response = await fetch('/local-query', {
+                                method: 'POST',
+                                headers: { 'Content-Type': 'application/json' },
+                                body: JSON.stringify({
+                                    query: message,
+                                    max_results: 3
+                                })
+                            });
+                            break;
+                            
+                        case 'code':
+                            response = await fetch('/analyze-code', {
+                                method: 'POST',
+                                headers: { 'Content-Type': 'application/json' },
+                                body: JSON.stringify({
+                                    code: message,
+                                    language: 'auto',
+                                    analysis_type: 'comprehensive'
+                                })
+                            });
+                            break;
+                            
+                        case 'data':
+                            response = await fetch('/visualize-data', {
+                                method: 'POST',
+                                headers: { 'Content-Type': 'application/json' },
+                                body: JSON.stringify({
+                                    data_source: message,
+                                    chart_type: 'auto',
+                                    analysis_focus: 'trends'
+                                })
+                            });
+                            break;
+                            
+                        case 'meeting':
+                            response = await fetch('/extract-meeting-notes', {
+                                method: 'POST',
+                                headers: { 'Content-Type': 'application/json' },
+                                body: JSON.stringify({
+                                    notes: message,
+                                    extract_actions: true,
+                                    extract_decisions: true
+                                })
+                            });
+                            break;
+                            
+                        case 'research':
+                            response = await fetch('/analyze-research-paper', {
+                                method: 'POST',
+                                headers: { 'Content-Type': 'application/json' },
+                                body: JSON.stringify({
+                                    content: message,
+                                    focus_areas: ['methodology', 'findings', 'conclusions']
+                                })
+                            });
+                            break;
+                    }
+                }
+
+                const data = await response.json();
+                
+                if (!response.ok) {
+                    throw new Error(data.detail || 'Request failed');
+                }
+
+                // Handle response
+                if (currentMode === 'chat' && data.conversation_id) {
+                    // Update current conversation ID
+                    currentConversationId = data.conversation_id;
+                    addMessage(data.response, false);
+                    
+                    // Refresh conversation list
+                    await loadConversations();
+                } else {
+                    // Format response for other modes
+                    formatResponse(data, currentMode);
+                }
+                
+            } catch (error) {
+                addMessage(`❌ Error: ${error.message}`, false);
+            } finally {
+                setLoading(false);
+            }
+        }
+
+        function formatResponse(data, mode) {
+            let content = '';
+            
+            switch (mode) {
+                case 'chat':
+                    content = data.summary || data.response || 'No response received';
+                    break;
+                    
+                case 'email':
+                    content = `<div class="result-section">
+                        <div class="result-title">📧 Email Draft</div>
+                        <div style="white-space: pre-wrap; font-family: monospace; background: white; padding: 15px; border-radius: 8px; margin-top: 10px;">${data.draft}</div>
+                    </div>`;
+                    break;
+                    
+                case 'search':
+                    content = `<div class="result-section">
+                        <div class="result-title">🔍 Search Results & Summary</div>
+                        <div style="margin-bottom: 15px;"><strong>AI Summary:</strong><br>${data.summary}</div>
+                        <div class="search-results">`;
+                    
+                    data.results.forEach(result => {
+                        content += `<div class="search-result">
+                            <div class="search-result-title">${result.title}</div>
+                            <div class="search-result-url">${result.url}</div>
+                            <div class="search-result-snippet">${result.snippet || 'No description available'}</div>
+                        </div>`;
+                    });
+                    
+                    content += `</div>
+                        <div style="margin-top: 10px; font-size: 12px; color: #6c757d;">
+                            Provider: ${data.provider} | Results: ${data.results.length}
+                        </div>
+                    </div>`;
+                    break;
+                    
+                case 'docs':
+                    content = `<div class="result-section">
+                        <div class="result-title">📚 Document Query Result</div>
+                        <div style="margin-bottom: 15px;"><strong>Answer:</strong><br>${data.answer}</div>
+                        <div style="font-size: 12px; color: #6c757d;">
+                            Sources: ${data.sources.join(', ')} | Documents used: ${data.num_documents_used}
+                        </div>
+                    </div>`;
+                    break;
+                    
+                case 'code':
+                    content = `<div class="result-section">
+                        <div class="result-title">👨‍💻 Code Analysis Result</div>
+                        <div style="margin-bottom: 15px;"><strong>Language:</strong> ${data.language} | <strong>Analysis Type:</strong> ${data.analysis_type}</div>
+                        <div style="white-space: pre-wrap; background: #f8f9fa; padding: 15px; border-radius: 8px; border-left: 4px solid #667eea;">${data.analysis}</div>
+                        <div style="margin-top: 10px; font-size: 12px; color: #6c757d;">
+                            Code length: ${data.code_length} characters
+                        </div>
+                    </div>`;
+                    break;
+                    
+                case 'data':
+                    content = `<div class="result-section">
+                        <div class="result-title">📊 Data Insights</div>
+                        <div style="margin-bottom: 15px;"><strong>Source:</strong> ${data.data_source} | <strong>Focus:</strong> ${data.analysis_focus}</div>
+                        <div style="white-space: pre-wrap; background: #f8f9fa; padding: 15px; border-radius: 8px; border-left: 4px solid #28a745;">${data.analysis}</div>
+                        <div style="margin-top: 10px; font-size: 11px; color: #6c757d; background: white; padding: 8px; border-radius: 4px;">
+                            <strong>Data Preview:</strong><br>${data.data_preview}
+                        </div>
+                    </div>`;
+                    break;
+                    
+                case 'meeting':
+                    content = `<div class="result-section">
+                        <div class="result-title">📋 Meeting Analysis</div>
+                        <div style="white-space: pre-wrap; background: #f8f9fa; padding: 15px; border-radius: 8px; border-left: 4px solid #ffc107;">${data.analysis}</div>
+                        <div style="margin-top: 10px; font-size: 12px; color: #6c757d;">
+                            Original length: ${data.original_length} characters | Actions: ${data.extracted_actions ? 'Yes' : 'No'} | Decisions: ${data.extracted_decisions ? 'Yes' : 'No'}
+                        </div>
+                    </div>`;
+                    break;
+                    
+                case 'research':
+                    content = `<div class="result-section">
+                        <div class="result-title">📄 Research Paper Analysis</div>
+                        <div style="margin-bottom: 15px;"><strong>Focus Areas:</strong> ${data.focus_areas.join(', ')}</div>
+                        <div style="white-space: pre-wrap; background: #f8f9fa; padding: 15px; border-radius: 8px; border-left: 4px solid #6f42c1;">${data.analysis}</div>
+                        <div style="margin-top: 10px; font-size: 11px; color: #6c757d; background: white; padding: 8px; border-radius: 4px;">
+                            <strong>Content Preview:</strong><br>${data.content_preview}
+                        </div>
+                    </div>`;
+                    break;
+            }
+            
+            addMessage(content, false, true);
+        }
+
+        // File upload functionality
+        function setupFileUpload() {
+            // Click to upload
+            uploadArea.addEventListener('click', () => {
+                fileInput.click();
+            });
+
+            // File selection
+            fileInput.addEventListener('change', handleFileSelect);
+
+            // Drag and drop
+            uploadArea.addEventListener('dragover', (e) => {
+                e.preventDefault();
+                uploadArea.classList.add('dragover');
+            });
+
+            uploadArea.addEventListener('dragleave', (e) => {
+                e.preventDefault();
+                uploadArea.classList.remove('dragover');
+            });
+
+            uploadArea.addEventListener('drop', (e) => {
+                e.preventDefault();
+                uploadArea.classList.remove('dragover');
+                const files = Array.from(e.dataTransfer.files);
+                uploadFiles(files);
+            });
+        }
+
+        function handleFileSelect(e) {
+            const files = Array.from(e.target.files);
+            uploadFiles(files);
+            fileInput.value = ''; // Reset input
+        }
+
+        async function uploadFiles(files) {
+            if (files.length === 0) return;
+
+            const totalFiles = files.length;
+            let completed = 0;
+
+            uploadProgress.style.display = 'block';
+            uploadStatus.textContent = `Uploading ${totalFiles} file(s)...`;
+
+            for (const file of files) {
+                try {
+                    await uploadSingleFile(file);
+                    completed++;
+                    const percent = (completed / totalFiles) * 100;
+                    progressFill.style.width = percent + '%';
+                    uploadStatus.textContent = `Uploaded ${completed}/${totalFiles} files`;
+                } catch (error) {
+                    console.error('Upload failed:', error);
+                    addMessage(`❌ Failed to upload ${file.name}: ${error.message}`, false);
+                }
+            }
+
+            // Hide progress after completion
+            setTimeout(() => {
+                uploadProgress.style.display = 'none';
+                progressFill.style.width = '0%';
+            }, 2000);
+
+            // Refresh file list
+            await loadDocuments();
+        }
+
+        async function uploadSingleFile(file) {
+            const formData = new FormData();
+            formData.append('file', file);
+
+            const response = await fetch('/upload', {
+                method: 'POST',
+                body: formData
+            });
+
+            const result = await response.json();
+
+            if (!response.ok) {
+                throw new Error(result.detail || 'Upload failed');
+            }
+
+            // Show success message
+            addMessage(`📄 Successfully uploaded ${file.name} (${result.chunks_created} chunks created)`, false);
+
+            return result;
+        }
+
+        async function loadDocuments() {
+            try {
+                const response = await fetch('/documents');
+                const data = await response.json();
+                renderFileList(data.files);
+            } catch (error) {
+                console.error('Failed to load documents:', error);
+            }
+        }
+
+        function renderFileList(files) {
+            fileList.innerHTML = '';
+
+            if (files.length === 0) {
+                fileList.innerHTML = '<div style="text-align: center; padding: 10px; color: #6c757d; font-size: 11px;">No documents uploaded</div>';
+                return;
+            }
+
+            files.forEach(file => {
+                const item = document.createElement('div');
+                item.className = 'file-item';
+                
+                const fileName = document.createElement('div');
+                fileName.className = 'file-name';
+                fileName.textContent = file.name;
+                fileName.title = file.name;
+
+                const fileType = document.createElement('span');
+                fileType.className = 'file-type';
+                fileType.textContent = file.type;
+
+                const deleteBtn = document.createElement('button');
+                deleteBtn.className = 'delete-file';
+                deleteBtn.textContent = '×';
+                deleteBtn.onclick = () => deleteDocument(file.name);
+
+                item.appendChild(fileName);
+                item.appendChild(fileType);
+                item.appendChild(deleteBtn);
+                fileList.appendChild(item);
+            });
+        }
+
+        async function deleteDocument(filename) {
+            if (!confirm(`Delete ${filename}?`)) return;
+
+            try {
+                const response = await fetch(`/documents/${encodeURIComponent(filename)}`, {
+                    method: 'DELETE'
+                });
+
+                const result = await response.json();
+
+                if (response.ok) {
+                    addMessage(`🗑️ Deleted ${filename}`, false);
+                    await loadDocuments();
+                } else {
+                    throw new Error(result.detail || 'Delete failed');
+                }
+            } catch (error) {
+                addMessage(`❌ Failed to delete ${filename}: ${error.message}`, false);
+            }
+        }
+    </script>
+</body>
+</html>

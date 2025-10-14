@@ -1,0 +1,198 @@
+# SLM Personal Agent - Git Ignore File
+
+# Environment variables
+.env
+.env.local
+.env.development
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+MANIFEST
+
+# Virtual environments
+venv/
+env/
+ENV/
+.venv/
+
+# Database files
+*.db
+*.sqlite3
+
+# Uploads and data
+uploads/*
+!uploads/.gitkeep
+chromadb/*
+!chromadb/.gitkeep
+
+# Logs
+*.log
+logs/
+
+# OS generated files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# Temporary files
+.tmp/
+temp/
+tmp/
+
+# Backup files
+*.backup
+*.bak
+backups/
+
+# Docker
+.dockerignore
+
+# SSL certificates
+ssl/
+*.pem
+*.key
+*.crt
+
+# Test files
+.pytest_cache/
+.coverage
+htmlcov/
+.tox/
+.nox/
+
+# Jupyter
+.ipynb_checkpoints/
+
+# Node modules (if any)
+node_modules/
+npm-debug.log*
+
+# MacOS
+.DS_Store
+.AppleDouble
+.LSOverride
+
+# Personal files that shouldn't be in repo
+Documents/
+Downloads/
+Desktop/
+Pictures/
+Movies/
+Music/
+Library/
+Applications/
+Applications (Parallels)/
+Creative Cloud Files*/
+Parallels/
+Public/
+Sites/
+opt/
+secure_email_agent
+sinatra_app/
+backend/
+*.pdf
+*.dmg
+*.pkg
+*.zip
+*.csv
+*.xlsx
+*.docx
+*.ics
+*.jpg
+*.jpeg
+*.png
+*.mov
+*.mp3
+*.m4r
+section*
+Untitled.ipynb
+
+# Claude related files
+.claude/
+.claude.json
+.claude.json.backup
+
+# Shell history and config
+.bash_history
+.zsh_history
+.bash_profile
+.zshrc
+.zprofile*
+.tcshrc
+.xonshrc
+.zcompdump*
+.zsh_sessions/
+.lesshst
+.viminfo
+.psql_history
+.python_history
+.wget-hsts
+
+# Development tools
+.anaconda/
+.bundle/
+.cache/
+.cisco/
+.conda/
+.condarc
+.config/
+.continuum/
+.cups/
+.dbclient/
+.docker/
+.gem/
+.gitconfig
+.idlerc/
+.ipynb_checkpoints/
+.ipython/
+.jupyter/
+.local/
+.matplotlib/
+.mono/
+.npm/
+.nvm/
+.nx/
+.odbc.ini
+.ollama/
+.oracle_jre_usage/
+.pgadmin/
+.qt/
+.rbenv/
+.ssh/
+.streamlit/
+.swiftpm/
+.Trash/
+.vmware/
+.vpn/
+.vscode/
+.CFUserTextEncoding
