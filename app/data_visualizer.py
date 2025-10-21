@@ -303,71 +303,110 @@ class DataExplorerEngine:
         """Create interactive Plotly chart"""
         fig = None
         
-        if config.chart_type == ChartType.LINE:
-            fig = px.line(data, x=config.x_column, y=config.y_column, 
-                         color=config.color_column, title=config.title,
-                         animation_frame=config.animation_frame)
-        
-        elif config.chart_type == ChartType.BAR:
-            if config.aggregation:
-                # Aggregate data first
-                if config.aggregation == "count":
-                    agg_data = data.groupby(config.x_column).size().reset_index(name='count')
-                    fig = px.bar(agg_data, x=config.x_column, y='count', title=config.title)
-                else:
-                    agg_data = data.groupby(config.x_column)[config.y_column].agg(config.aggregation).reset_index()
-                    fig = px.bar(agg_data, x=config.x_column, y=config.y_column, title=config.title)
+        # Auto-select columns if not specified
+        if not config.x_column or not config.y_column:
+            numeric_cols = data.select_dtypes(include=[np.number]).columns.tolist()
+            categorical_cols = data.select_dtypes(include=['object']).columns.tolist()
+            datetime_cols = data.select_dtypes(include=['datetime64']).columns.tolist()
+            
+            # Set default columns based on chart type and available data
+            if config.chart_type == ChartType.LINE:
+                config.x_column = config.x_column or (datetime_cols[0] if datetime_cols else (categorical_cols[0] if categorical_cols else data.columns[0]))
+                config.y_column = config.y_column or (numeric_cols[0] if numeric_cols else data.columns[1])
+            elif config.chart_type == ChartType.BAR:
+                config.x_column = config.x_column or (categorical_cols[0] if categorical_cols else data.columns[0])
+                config.y_column = config.y_column or (numeric_cols[0] if numeric_cols else data.columns[1])
             else:
-                fig = px.bar(data, x=config.x_column, y=config.y_column, 
+                config.x_column = config.x_column or data.columns[0]
+                config.y_column = config.y_column or (data.columns[1] if len(data.columns) > 1 else data.columns[0])
+        
+        # Ensure data types are appropriate for the chart
+        try:
+            if config.chart_type == ChartType.LINE:
+                # Convert date column if it exists
+                if config.x_column in data.columns and data[config.x_column].dtype == 'object':
+                    try:
+                        data[config.x_column] = pd.to_datetime(data[config.x_column])
+                    except:
+                        pass  # Keep as is if conversion fails
+                        
+                fig = px.line(data, x=config.x_column, y=config.y_column, 
+                             color=config.color_column, title=config.title,
+                             animation_frame=config.animation_frame)
+        except Exception as e:
+            logger.warning(f"Line chart creation failed: {e}, falling back to scatter plot")
+            fig = px.scatter(data, x=config.x_column, y=config.y_column, 
                            color=config.color_column, title=config.title)
         
-        elif config.chart_type == ChartType.SCATTER:
-            fig = px.scatter(data, x=config.x_column, y=config.y_column,
-                           color=config.color_column, size=config.size_column,
-                           title=config.title, animation_frame=config.animation_frame)
-        
-        elif config.chart_type == ChartType.PIE:
-            if config.aggregation == "count":
-                pie_data = data[config.x_column].value_counts().reset_index()
-                fig = px.pie(pie_data, values=config.x_column, names='index', title=config.title)
-            else:
-                fig = px.pie(data, values=config.y_column, names=config.x_column, title=config.title)
-        
-        elif config.chart_type == ChartType.HISTOGRAM:
-            fig = px.histogram(data, x=config.x_column, color=config.color_column,
-                             title=config.title, nbins=30)
-        
-        elif config.chart_type == ChartType.HEATMAP:
-            if config.config.get("correlation", False):
-                # Create correlation heatmap
-                numeric_data = data.select_dtypes(include=[np.number])
-                corr_matrix = numeric_data.corr()
-                fig = px.imshow(corr_matrix, text_auto=True, aspect="auto",
-                              title="Correlation Heatmap")
-            else:
-                # Regular heatmap
-                fig = px.density_heatmap(data, x=config.x_column, y=config.y_column,
-                                       title=config.title)
-        
-        elif config.chart_type == ChartType.BOX:
-            fig = px.box(data, x=config.x_column, y=config.y_column,
-                        color=config.color_column, title=config.title)
-        
-        elif config.chart_type == ChartType.VIOLIN:
-            fig = px.violin(data, x=config.x_column, y=config.y_column,
-                          color=config.color_column, title=config.title)
-        
-        elif config.chart_type == ChartType.AREA:
-            fig = px.area(data, x=config.x_column, y=config.y_column,
-                         color=config.color_column, title=config.title)
-        
-        elif config.chart_type == ChartType.TREEMAP:
-            fig = px.treemap(data, path=[px.Constant("All"), config.x_column],
-                           values=config.y_column, title=config.title)
-        
-        else:
-            # Default to scatter plot
-            fig = px.scatter(data, x=config.x_column, y=config.y_column, title=config.title)
+        if not fig:  # If line chart creation failed or not a line chart
+            try:
+                if config.chart_type == ChartType.BAR:
+                    if config.aggregation:
+                        # Aggregate data first
+                        if config.aggregation == "count":
+                            agg_data = data.groupby(config.x_column).size().reset_index(name='count')
+                            fig = px.bar(agg_data, x=config.x_column, y='count', title=config.title)
+                        else:
+                            agg_data = data.groupby(config.x_column)[config.y_column].agg(config.aggregation).reset_index()
+                            fig = px.bar(agg_data, x=config.x_column, y=config.y_column, title=config.title)
+                    else:
+                        fig = px.bar(data, x=config.x_column, y=config.y_column, 
+                                   color=config.color_column, title=config.title)
+                
+                elif config.chart_type == ChartType.SCATTER:
+                    fig = px.scatter(data, x=config.x_column, y=config.y_column,
+                                   color=config.color_column, size=config.size_column,
+                                   title=config.title, animation_frame=config.animation_frame)
+                
+                elif config.chart_type == ChartType.PIE:
+                    if config.aggregation == "count":
+                        pie_data = data[config.x_column].value_counts().reset_index()
+                        fig = px.pie(pie_data, values=config.x_column, names='index', title=config.title)
+                    else:
+                        fig = px.pie(data, values=config.y_column, names=config.x_column, title=config.title)
+                
+                elif config.chart_type == ChartType.HISTOGRAM:
+                    fig = px.histogram(data, x=config.x_column, color=config.color_column,
+                                     title=config.title, nbins=30)
+                
+                elif config.chart_type == ChartType.HEATMAP:
+                    if config.config.get("correlation", False):
+                        # Create correlation heatmap
+                        numeric_data = data.select_dtypes(include=[np.number])
+                        corr_matrix = numeric_data.corr()
+                        fig = px.imshow(corr_matrix, text_auto=True, aspect="auto",
+                                      title="Correlation Heatmap")
+                    else:
+                        # Regular heatmap
+                        fig = px.density_heatmap(data, x=config.x_column, y=config.y_column,
+                                               title=config.title)
+                
+                elif config.chart_type == ChartType.BOX:
+                    fig = px.box(data, x=config.x_column, y=config.y_column,
+                                color=config.color_column, title=config.title)
+                
+                elif config.chart_type == ChartType.VIOLIN:
+                    fig = px.violin(data, x=config.x_column, y=config.y_column,
+                                  color=config.color_column, title=config.title)
+                
+                elif config.chart_type == ChartType.AREA:
+                    fig = px.area(data, x=config.x_column, y=config.y_column,
+                                 color=config.color_column, title=config.title)
+                
+                elif config.chart_type == ChartType.TREEMAP:
+                    fig = px.treemap(data, path=[px.Constant("All"), config.x_column],
+                                   values=config.y_column, title=config.title)
+                
+                else:
+                    # Default to scatter plot
+                    fig = px.scatter(data, x=config.x_column, y=config.y_column, title=config.title)
+                    
+            except Exception as e:
+                logger.warning(f"Chart creation failed: {e}, creating fallback scatter plot")
+                # Fallback to basic scatter plot with first two columns
+                fig = px.scatter(data, x=data.columns[0], 
+                               y=data.columns[1] if len(data.columns) > 1 else data.columns[0], 
+                               title=config.title or "Data Visualization")
         
         # Apply styling
         fig.update_layout(

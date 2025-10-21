@@ -2138,13 +2138,28 @@ async def create_visualization(request: VisualizationRequest):
             interactive=request.config.get("interactive", True)
         )
         
+        # Map frontend data source to backend enum
+        data_source_mapping = {
+            "sales": DataSource.GENERATED,
+            "users": DataSource.GENERATED, 
+            "stocks": DataSource.GENERATED,
+            "conversations": DataSource.CONVERSATIONS,
+            "uploaded": DataSource.UPLOADED,
+            "integrations": DataSource.INTEGRATIONS,
+            "security_logs": DataSource.SECURITY_LOGS,
+            "knowledge_graph": DataSource.KNOWLEDGE_GRAPH,
+            "generated": DataSource.GENERATED
+        }
+        
+        mapped_data_source = data_source_mapping.get(request.data_source, DataSource.GENERATED)
+        
         # Create visualization
         viz_id = await data_explorer.create_visualization(
             data=data,
             config=config,
             name=request.name,
             description=request.description,
-            data_source=DataSource(request.data_source)
+            data_source=mapped_data_source
         )
         
         # Get the created visualization
