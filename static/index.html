@@ -3042,30 +3042,62 @@ ${recommendationsText}`, false);
         async function updateDataSourceOptions() {
             const dataSource = document.getElementById('data-source').value;
             
+            // Hardcoded column options for immediate functionality
+            const columnOptions = {
+                'sales': ['date', 'sales', 'region', 'product', 'profit_margin'],
+                'users': ['age', 'gender', 'country', 'signup_date', 'monthly_spend', 'satisfaction_score'],
+                'stocks': ['date', 'price', 'volume', 'symbol'],
+                'conversations': ['mode', 'message_count', 'avg_message_length', 'date']
+            };
+            
+            const columns = columnOptions[dataSource] || ['x', 'y', 'category', 'value'];
+            
+            // Update column selectors
+            const xSelect = document.getElementById('x-column');
+            const ySelect = document.getElementById('y-column');
+            const colorSelect = document.getElementById('color-column');
+            
+            if (xSelect && ySelect && colorSelect) {
+                // Clear and repopulate
+                [xSelect, ySelect, colorSelect].forEach(select => {
+                    select.innerHTML = '<option value="">Select column...</option>';
+                    columns.forEach(col => {
+                        select.innerHTML += `<option value="${col}">${col}</option>`;
+                    });
+                });
+                
+                // Add "None" option for color
+                colorSelect.innerHTML = '<option value="">None</option>' + colorSelect.innerHTML.substring(colorSelect.innerHTML.indexOf('<option value="">Select column...'));
+                
+                // Set intelligent defaults based on data type
+                if (dataSource === 'sales') {
+                    xSelect.value = 'date';
+                    ySelect.value = 'sales';
+                    colorSelect.value = 'region';
+                } else if (dataSource === 'users') {
+                    xSelect.value = 'age';
+                    ySelect.value = 'monthly_spend';
+                    colorSelect.value = 'gender';
+                } else if (dataSource === 'stocks') {
+                    xSelect.value = 'date';
+                    ySelect.value = 'price';
+                    colorSelect.value = 'symbol';
+                } else if (dataSource === 'conversations') {
+                    xSelect.value = 'date';
+                    ySelect.value = 'message_count';
+                    colorSelect.value = 'mode';
+                }
+            }
+            
+            // Also try the dynamic approach as backup
             try {
                 const response = await fetch(`/data/sample/${dataSource}?rows=10`);
                 if (response.ok) {
                     const data = await response.json();
-                    const columns = data.columns;
-                    
-                    // Update column selectors
-                    const xSelect = document.getElementById('x-column');
-                    const ySelect = document.getElementById('y-column');
-                    const colorSelect = document.getElementById('color-column');
-                    
-                    // Clear and repopulate
-                    [xSelect, ySelect, colorSelect].forEach(select => {
-                        select.innerHTML = '<option value="">Select column...</option>';
-                        columns.forEach(col => {
-                            select.innerHTML += `<option value="${col}">${col}</option>`;
-                        });
-                    });
-                    
-                    // Add "None" option for color
-                    colorSelect.innerHTML = '<option value="">None</option>' + colorSelect.innerHTML.substring(colorSelect.innerHTML.indexOf('<option value="">Select column...'));
+                    console.log('Dynamic columns loaded:', data.columns);
                 }
             } catch (error) {
-                console.error('Failed to update data source options:', error);
+                console.log('Using hardcoded columns (dynamic failed):', error);
             }
         }
         
