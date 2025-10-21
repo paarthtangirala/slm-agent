@@ -11,6 +11,9 @@ from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.ext.asyncio import create_async_engine, AsyncSession, async_sessionmaker
 from sqlalchemy.orm import relationship, sessionmaker
 import json
+import logging
+
+logger = logging.getLogger(__name__)
 
 Base = declarative_base()
 
@@ -19,6 +22,7 @@ class Conversation(Base):
     
     id = Column(String, primary_key=True, default=lambda: str(uuid.uuid4()))
     title = Column(String, nullable=False)
+    mode = Column(String, default="chat")  # chat, email, search, docs, etc.
     created_at = Column(DateTime, default=datetime.utcnow)
     updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
     
@@ -45,14 +49,31 @@ class MemoryManager:
         self.async_session = async_sessionmaker(self.engine, expire_on_commit=False)
     
     async def initialize(self):
-        """Create database tables"""
+        """Create database tables and handle migrations"""
         async with self.engine.begin() as conn:
+            # First, try to create all tables (this will create new tables but not modify existing ones)
             await conn.run_sync(Base.metadata.create_all)
+            
+            # Handle migration for adding mode column to existing conversations table
+            try:
+                # Try to check if mode column exists
+                result = await conn.execute("PRAGMA table_info(conversations)")
+                columns = await result.fetchall()
+                has_mode_column = any(col[1] == 'mode' for col in columns)
+                
+                if not has_mode_column:
+                    # Add mode column with default value
+                    await conn.execute("ALTER TABLE conversations ADD COLUMN mode VARCHAR DEFAULT 'chat'")
+                    logger.info("Added mode column to conversations table")
+            except Exception as e:
+                # If conversations table doesn't exist yet, it will be created by create_all above
+                logger.info(f"Migration info: {e}")
+                pass
     
-    async def create_conversation(self, title: str = "New Conversation") -> str:
+    async def create_conversation(self, title: str = "New Conversation", mode: str = "chat") -> str:
         """Create a new conversation and return its ID"""
         async with self.async_session() as session:
-            conversation = Conversation(title=title)
+            conversation = Conversation(title=title, mode=mode)
             session.add(conversation)
             await session.commit()
             return conversation.id
@@ -70,6 +91,7 @@ class MemoryManager:
                 {
                     "id": conv.id,
                     "title": conv.title,
+                    "mode": conv.mode,
                     "created_at": conv.created_at.isoformat(),
                     "updated_at": conv.updated_at.isoformat()
                 }
@@ -179,3 +201,7 @@ class MemoryManager:
 
 # Global memory manager instance
 memory_manager = MemoryManager()
+
+def get_db_session():
+    """Get async database session - contextual wrapper for recommendations engine"""
+    return memory_manager.async_session
