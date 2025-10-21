@@ -2242,8 +2242,14 @@ async def get_sample_data(data_type: str, rows: int = 100):
         else:
             data = await data_explorer.generate_sample_data(data_type, rows)
         
+        # Convert datetime columns to strings for JSON serialization
+        data_copy = data.copy()
+        for col in data_copy.columns:
+            if data_copy[col].dtype.name.startswith('datetime'):
+                data_copy[col] = data_copy[col].dt.strftime('%Y-%m-%d %H:%M:%S')
+        
         return {
-            "data": data.to_dict('records'),
+            "data": data_copy.to_dict('records'),
             "columns": list(data.columns),
             "rows": len(data),
             "data_type": data_type

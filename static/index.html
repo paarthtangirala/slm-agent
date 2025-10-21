@@ -791,6 +791,10 @@
             setTimeout(() => {
                 loadConversations();
                 checkHealth();
+                // Initialize data visualization column options
+                if (document.getElementById('data-source')) {
+                    updateDataSourceOptions();
+                }
             }, 100);
             
             // Mode switching
@@ -3025,7 +3029,14 @@ ${recommendationsText}`, false);
             
             // Show selected tab
             document.getElementById(`tab-${tabName}`).classList.add('active');
-            event.target.classList.add('active');
+            if (event && event.target) {
+                event.target.classList.add('active');
+            }
+            
+            // Initialize data source options when create tab is shown
+            if (tabName === 'create' && document.getElementById('data-source')) {
+                updateDataSourceOptions();
+            }
         }
         
         async function updateDataSourceOptions() {
