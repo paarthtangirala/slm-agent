@@ -1,273 +1,195 @@
-# 🤖 SLM Personal Agent - Level 6+ AI Assistant
+# Human-Centered AI Assistant
 
-[![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
+[![License](https://img.shields.io/badge/License-MIT-blue.svg)](https://opensource.org/licenses/MIT)
 [![Python](https://img.shields.io/badge/Python-3.8%2B-blue)](https://www.python.org/)
 [![FastAPI](https://img.shields.io/badge/FastAPI-0.104%2B-green)](https://fastapi.tiangolo.com/)
 
-Advanced SLM Personal Agent with **Integration Hub**, **Security Tools**, **Data Visualization**, and **Personalization Engine**. Multi-modal AI assistant with voice interface, workflow automation, and enterprise-grade features.
+A local, private, transparent AI assistant following Prof. Jingyi Xie's Human-Centered AI principles. Built with simplicity, privacy, and accessibility in mind.
 
-## ✨ Level 6+ Features
+## 🎯 Human-Centered Design Principles
 
-### 🔗 **Integration Hub**
-- **6 External Services**: GitHub, Slack, Google Drive, Notion, Trello, Google Calendar
-- **OAuth2 & API Key Authentication**: Secure connection management
-- **Service Status Monitoring**: Real-time integration health tracking
-- **Automated Workflows**: Intelligent service suggestions and automation
+### ✨ **Transparency**
+- Every AI response includes clear reasoning for how it was generated
+- Intent detection is explainable with simple heuristics
+- System status and capabilities are always visible
+- No black-box operations
 
-### 🔒 **Security Tools**
-- **Advanced Data Classification**: Automatic PII and sensitive data detection
-- **AES-256 Encryption**: End-to-end data protection
-- **Comprehensive Audit Logging**: Full activity tracking and compliance
-- **Real-time Anomaly Detection**: Security threat monitoring
-- **Security Dashboard**: Live metrics and threat assessment
+### ♿ **Accessibility** 
+- Voice input/output support for hands-free interaction
+- Multiple response length options (brief, medium, detailed)
+- Clear error messages with actionable suggestions
+- Works entirely offline after setup
 
-### 📊 **Visual Data Explorer**
-- **Interactive Charts**: Bar, line, scatter, pie, heatmap, box, violin, area charts
-- **Plotly Integration**: Rich, interactive data visualizations
-- **Dashboard Creation**: Combine multiple visualizations
-- **Sample Data Generation**: Built-in datasets for testing and demos
-- **Data Quality Assessment**: Automated analysis and recommendations
+### 🧠 **Personalization**
+- Local learning of user preferences (tone, length, voice settings)
+- Feedback system for continuous improvement
+- Adapts responses based on user interaction patterns
+- No external profiling or tracking
 
-### 🧠 **Enhanced Memory & Personalization**
-- **AI-Powered Learning**: Automatic user preference detection
-- **Communication Style Analysis**: Adapts to formal/casual/technical styles
-- **Behavioral Pattern Recognition**: Learns from interaction patterns
-- **Personalized Insights**: Smart recommendations and usage analytics
-- **Confidence Scoring**: Tracks learning accuracy and reliability
+### 🔒 **Privacy**
+- **Local-first**: All processing happens on your machine
+- **No cloud dependencies**: Works without internet after setup
+- **Opt-in web search**: External search only when explicitly enabled
+- **Local knowledge base**: Your documents stay on your device
 
-### 🎯 **Additional Advanced Features**
-- **Voice Interface**: Speech recognition and text-to-speech
-- **Workflow Automation**: Template-based task automation
-- **Smart Reminders**: Intelligent notification system
-- **Knowledge Graph**: Enhanced document processing and insights
-- **Multi-Modal AI**: 9+ specialized conversation modes
+### 🔄 **Feedback**
+- User rating system for every response
+- Correction mechanism for improving future responses
+- Transparent feedback stats and usage analytics
+- Continuous learning from user preferences
 
 ## 🚀 Quick Start
 
-### 1. Install Ollama & Pull Model
+### Prerequisites
+- Python 3.8+
+- [Ollama](https://ollama.ai) installed and running
+- Git
 
-**Download:** https://ollama.com/download
+### Installation
+
+1. **Clone and setup**
+   ```bash
+   git clone <repository-url>
+   cd slm-personal-agent
+   cp .env.example .env
+   ```
+
+2. **Install dependencies**
+   ```bash
+   pip install -r requirements_hcai.txt
+   ```
+
+3. **Start Ollama and download model**
+   ```bash
+   ollama serve
+   ollama pull phi3:mini
+   ```
+
+4. **Run the assistant**
+   ```bash
+   python run_hcai.py
+   ```
+
+5. **Access the web interface**
+   - Open browser to: **http://localhost:8000**
+   - Beautiful web interface with document upload capabilities
+
+## 📚 Adding Your Knowledge
+
+Upload documents directly through the web interface:
+
+1. Click **"Add Documents"** in the knowledge base section
+2. Select PDF, TXT, MD, or RST files
+3. Click **"Upload & Process"**
+4. Ask questions about your documents!
+
+**Or use command line:**
+```bash
+python ingest_hcai.py docs/
+python ingest_hcai.py document.pdf
+```
+
+## 🔌 API Endpoints
+
+### `/assist` - Core Intelligence
+Main endpoint for all assistance tasks with transparent reasoning.
+
+```json
+{
+  "text": "What are the HCAI principles?",
+  "tone": "friendly",
+  "length": "medium",
+  "use_web": false
+}
+```
+
+### `/memory` - Personalization
+Manage user preferences and provide feedback.
+
+### `/voice` - Accessibility
+Voice input and output for hands-free interaction.
+
+### `/upload` - Document Management
+Upload documents through the web interface.
+
+## 🛠 Configuration
+
+Edit `.env` to customize:
 
 ```bash
-# Recommended for SLM Personal Agent
-ollama pull phi3:mini          # 3.8GB, optimized for speed
-# OR
-ollama pull mistral:7b         # 4.1GB, enhanced reasoning
-# OR  
-ollama pull llama3.1:8b        # 4.7GB, comprehensive capabilities
+PORT=8000
+OLLAMA_MODEL=phi3:mini
+DEFAULT_WEB_SEARCH=false
+DEFAULT_TONE=friendly
+DEFAULT_LENGTH=medium
 ```
 
-### 2. Install Dependencies
+## 🧪 Optional Features
 
+**Voice Capabilities:**
 ```bash
-pip install -r requirements.txt
+pip install faster-whisper pyttsx3
 ```
 
-### 3. Environment Setup (Optional)
-
-Create `.env` file for API keys:
+**Web Search (Privacy-Aware):**
 ```bash
-# Web Search (Optional)
-SERPAPI_API_KEY=your_serpapi_key
-
-# Integration Hub (Optional)
-GITHUB_CLIENT_ID=your_github_client_id
-GITHUB_CLIENT_SECRET=your_github_client_secret
-SLACK_CLIENT_ID=your_slack_client_id
-# ... other service credentials
+pip install duckduckgo-search
 ```
 
-### 4. Start the Server
-
-```bash
-uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
-```
-
-🌐 **Access at:** http://localhost:8000
-
-## 🔧 Core Capabilities
-
-### 💬 **Multi-Modal Chat Modes**
-- **General**: Everyday conversations and assistance
-- **Research**: Deep analysis and fact-finding
-- **Creative**: Content creation and brainstorming
-- **Technical**: Code analysis and system design
-- **Educational**: Learning and teaching assistance
-- **Email**: Professional communication drafting
-- **Summarization**: Document and content summarization
-- **Web Search**: Real-time information retrieval
-- **Code Analysis**: Development assistance and debugging
-
-### 📁 **Document Processing**
-- **Supported Formats**: PDF, DOCX, TXT, CSV, XLSX
-- **Intelligent Extraction**: Automatic content analysis
-- **Knowledge Base**: Searchable document repository
-- **Vector Search**: Semantic document retrieval
-
-### 🎤 **Voice Capabilities**
-- **Speech-to-Text**: Real-time voice input processing
-- **Text-to-Speech**: Natural voice output
-- **Voice Commands**: Hands-free operation
-- **Multiple Voice Options**: Customizable speech synthesis
-
-## 📊 API Endpoints
-
-### Core Chat
-```bash
-# Multi-modal conversation
-curl -X POST "http://localhost:8000/chat" \
-  -H "Content-Type: application/json" \
-  -d '{"message": "Hello", "mode": "general"}'
-```
-
-### Integration Hub
-```bash
-# Available integrations
-curl -X GET "http://localhost:8000/integrations/available"
-
-# User integrations
-curl -X GET "http://localhost:8000/integrations/user"
-```
-
-### Security Tools
-```bash
-# Security dashboard
-curl -X GET "http://localhost:8000/security/dashboard"
-
-# Data classification
-curl -X POST "http://localhost:8000/security/classify" \
-  -H "Content-Type: application/json" \
-  -d '{"data_type": "document", "data_id": "doc1", "content": "sensitive data"}'
-```
-
-### Data Visualization
-```bash
-# Create visualization
-curl -X POST "http://localhost:8000/data/visualize" \
-  -H "Content-Type: application/json" \
-  -d '{"name": "Sales Chart", "chart_type": "bar", "data_source": "uploaded", "config": {...}}'
-
-# Get visualizations
-curl -X GET "http://localhost:8000/data/visualizations"
-```
-
-### Personalization
-```bash
-# User dashboard
-curl -X GET "http://localhost:8000/personalization/dashboard"
-
-# Personalized suggestions
-curl -X GET "http://localhost:8000/personalization/suggestions"
-```
-
-## 🏗️ Architecture
+## 🏗 Architecture
 
 ```
-slm-personal-agent/
-├── app/
-│   ├── main.py                    # FastAPI application
-│   ├── database.py               # Async SQLAlchemy setup
-│   ├── integration_hub.py        # External service connections
-│   ├── security_tools.py         # Data protection & audit
-│   ├── data_visualizer.py        # Interactive charts & dashboards
-│   ├── personalization_engine.py # AI-powered preference learning
-│   ├── voice_interface.py        # Speech recognition & TTS
-│   ├── workflows.py              # Automation templates
-│   ├── knowledge_graph.py        # Document processing
-│   ├── recommendations.py        # Smart suggestions
-│   └── reminders.py              # Notification system
-├── static/
-│   ├── index.html                # Web interface
-│   └── visualizations/           # Generated charts
-├── uploads/                      # Document storage
-├── requirements.txt              # Dependencies
-└── README.md                     # This file
+app_hcai/
+├── main.py           # FastAPI app with core endpoints
+├── types.py          # Transparent request/response models  
+├── intent.py         # Explainable intent detection
+├── prompts.py        # Human-centered prompt templates
+├── llm_local.py      # Ollama client wrapper
+├── memory.py         # Local preference storage
+├── rag_local.py      # Local knowledge base
+├── tts_voice.py      # Voice processing (optional)
+└── static/           # Web interface
+    └── index.html    # Beautiful web UI
 ```
 
-## 🔧 Configuration
+## 📊 Privacy & Data
 
-### Database
-- **SQLite**: Local data storage with async SQLAlchemy
-- **ChromaDB**: Vector database for document embeddings
-- **Automatic Migrations**: Schema updates handled automatically
+**What Stays Local:**
+- All conversations and preferences
+- Personal document knowledge base  
+- AI model processing (via Ollama)
+- User feedback and ratings
 
-### Security
-- **Data Classification**: Automatic PII and sensitive content detection
-- **Encryption**: AES-256 for data at rest
-- **Audit Logging**: Comprehensive activity tracking
-- **Access Control**: Role-based permissions
+**What's Optional (Opt-in):**
+- Web search via DuckDuckGo (privacy-focused)
+- Voice processing (all local)
 
-### Personalization
-- **Learning Engine**: AI-powered preference detection
-- **Confidence Scoring**: Tracks learning accuracy
-- **Behavioral Analysis**: Usage pattern recognition
-- **Adaptive UI**: Interface customization based on preferences
-
-## 🧪 Testing
-
-### Web Interface Testing
-1. Open http://localhost:8000
-2. Test each feature tab:
-   - **Chat**: Multi-modal conversations
-   - **Integrations**: Service connections
-   - **Security**: Data protection dashboard
-   - **Visualizations**: Chart creation
-   - **Personalization**: User insights
-
-### API Testing
-```bash
-# Health check
-curl http://localhost:8000/health
-
-# Integration status
-curl http://localhost:8000/integrations/available
-
-# Security dashboard
-curl http://localhost:8000/security/dashboard
-
-# Sample data generation
-curl http://localhost:8000/data/sample/sales
-```
-
-## 🚧 Development
-
-### Adding New Integrations
-1. Define service config in `integration_hub.py`
-2. Implement OAuth2 or API key authentication
-3. Add service actions and webhooks
-4. Update UI integration cards
-
-### Creating Custom Visualizations
-1. Add chart type to `ChartType` enum in `data_visualizer.py`
-2. Implement Plotly chart creation logic
-3. Add configuration options
-4. Update frontend chart selector
-
-### Extending Personalization
-1. Add new preference categories to `PreferenceCategory`
-2. Implement learning algorithms in `personalization_engine.py`
-3. Create insight generation logic
-4. Update dashboard displays
-
-## 📝 License
-
-This project is licensed under the Apache License 2.0 - see the [LICENSE](LICENSE) file for details.
+**What's Never Sent Anywhere:**
+- Your documents and conversations
+- Personal preferences and feedback
+- Usage patterns or analytics
 
 ## 🤝 Contributing
 
-1. Fork the repository
-2. Create a feature branch
-3. Implement your enhancement
-4. Add tests and documentation
-5. Submit a pull request
+This project follows Human-Centered AI principles:
 
-## 🔗 Links
+1. **Every change must improve transparency, accessibility, personalization, privacy, or feedback**
+2. **Keep dependencies minimal** - only add what's essential
+3. **Maintain local-first design** - no required cloud services
+4. **Document the reasoning** - explain design decisions
+5. **Test with real users** - validate accessibility improvements
 
-- **Ollama**: https://ollama.com/
-- **FastAPI**: https://fastapi.tiangolo.com/
-- **SQLAlchemy**: https://www.sqlalchemy.org/
-- **Plotly**: https://plotly.com/python/
-- **ChromaDB**: https://www.trychroma.com/
+## 📖 Learn More
+
+- [Ollama Documentation](https://ollama.ai/docs)
+- [FastAPI Documentation](https://fastapi.tiangolo.com)
+
+## 📜 License
+
+MIT License - See LICENSE file for details.
 
 ---
 
+**Built with ❤️ following Human-Centered AI principles**
+
+*"Technology should augment human capabilities while respecting human values, privacy, and autonomy."*

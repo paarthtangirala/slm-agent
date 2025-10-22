@@ -1,0 +1,582 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Human-Centered AI Assistant</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .container {
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            padding: 2rem;
+            width: 90%;
+            max-width: 800px;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 2rem;
+        }
+
+        .header h1 {
+            color: #333;
+            margin-bottom: 0.5rem;
+            font-size: 2rem;
+        }
+
+        .principles {
+            display: flex;
+            justify-content: center;
+            gap: 0.5rem;
+            margin-bottom: 1rem;
+            flex-wrap: wrap;
+        }
+
+        .principle {
+            background: #f0f7ff;
+            color: #0066cc;
+            padding: 0.3rem 0.8rem;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: 500;
+        }
+
+        .status {
+            background: #f0fff4;
+            border: 1px solid #90ee90;
+            border-radius: 10px;
+            padding: 1rem;
+            margin-bottom: 2rem;
+            text-align: center;
+        }
+
+        .status-healthy {
+            color: #006400;
+            font-weight: 500;
+        }
+
+        .chat-container {
+            margin-bottom: 2rem;
+        }
+
+        .input-group {
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+            margin-bottom: 1rem;
+        }
+
+        .input-row {
+            display: flex;
+            gap: 1rem;
+            align-items: center;
+        }
+
+        .input-field {
+            flex: 1;
+            padding: 0.8rem;
+            border: 2px solid #e0e0e0;
+            border-radius: 10px;
+            font-size: 1rem;
+            transition: border-color 0.3s;
+        }
+
+        .input-field:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .select-field {
+            padding: 0.8rem;
+            border: 2px solid #e0e0e0;
+            border-radius: 10px;
+            font-size: 1rem;
+            background: white;
+        }
+
+        .btn {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 0.8rem 2rem;
+            border-radius: 10px;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: transform 0.3s;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+        }
+
+        .btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .response-container {
+            background: #f8f9fa;
+            border-radius: 10px;
+            padding: 1.5rem;
+            margin-top: 1rem;
+            display: none;
+        }
+
+        .response-meta {
+            background: #e3f2fd;
+            border-radius: 8px;
+            padding: 1rem;
+            margin-bottom: 1rem;
+            font-size: 0.9rem;
+        }
+
+        .response-text {
+            line-height: 1.6;
+            color: #333;
+        }
+
+        .loading {
+            text-align: center;
+            color: #667eea;
+            font-style: italic;
+        }
+
+        .error {
+            background: #ffebee;
+            color: #c62828;
+            border-radius: 8px;
+            padding: 1rem;
+            margin-top: 1rem;
+        }
+
+        .features {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+            margin-top: 2rem;
+        }
+
+        .feature {
+            background: #f8f9fa;
+            border-radius: 10px;
+            padding: 1rem;
+            text-align: center;
+        }
+
+        .feature-icon {
+            font-size: 2rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .feature-title {
+            font-weight: 600;
+            margin-bottom: 0.3rem;
+            color: #333;
+        }
+
+        .feature-desc {
+            font-size: 0.9rem;
+            color: #666;
+        }
+
+        .btn-small {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 0.5rem 1rem;
+            border-radius: 8px;
+            font-size: 0.9rem;
+            cursor: pointer;
+            transition: transform 0.3s;
+        }
+
+        .btn-small:hover {
+            transform: translateY(-1px);
+        }
+
+        .upload-progress {
+            background: #e3f2fd;
+            border-radius: 5px;
+            padding: 0.5rem;
+            margin: 0.5rem 0;
+        }
+
+        .upload-success {
+            background: #e8f5e8;
+            color: #2e7d32;
+            border-radius: 5px;
+            padding: 1rem;
+            margin: 0.5rem 0;
+        }
+
+        .upload-error {
+            background: #ffebee;
+            color: #c62828;
+            border-radius: 5px;
+            padding: 1rem;
+            margin: 0.5rem 0;
+        }
+
+        .document-item {
+            background: white;
+            border-radius: 8px;
+            padding: 1rem;
+            margin: 0.5rem 0;
+            border-left: 4px solid #667eea;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        .document-meta {
+            font-size: 0.8rem;
+            color: #666;
+            margin-top: 0.5rem;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🤖 Human-Centered AI Assistant</h1>
+            <div class="principles">
+                <span class="principle">Transparency</span>
+                <span class="principle">Accessibility</span>
+                <span class="principle">Personalization</span>
+                <span class="principle">Privacy</span>
+                <span class="principle">Feedback</span>
+            </div>
+            <div class="status" id="status">
+                <div class="loading">Checking system status...</div>
+            </div>
+        </div>
+
+        <div class="chat-container">
+            <!-- Document Upload Section -->
+            <div class="upload-section" style="margin-bottom: 2rem;">
+                <div style="display: flex; align-items: center; gap: 1rem; margin-bottom: 1rem;">
+                    <h3 style="color: #333; margin: 0;">📚 Knowledge Base</h3>
+                    <button class="btn-small" onclick="toggleUpload()" id="toggleUploadBtn" style="padding: 0.5rem 1rem; font-size: 0.9rem;">Add Documents</button>
+                    <button class="btn-small" onclick="showDocuments()" style="padding: 0.5rem 1rem; font-size: 0.9rem; background: #28a745;">View Documents</button>
+                </div>
+                
+                <div class="upload-container" id="uploadContainer" style="display: none; background: #f8f9fa; border-radius: 10px; padding: 1.5rem; border: 2px dashed #ccc;">
+                    <div style="text-align: center; margin-bottom: 1rem;">
+                        <div style="font-size: 2rem; margin-bottom: 0.5rem;">📄</div>
+                        <div style="color: #666; margin-bottom: 1rem;">Upload documents to enhance AI responses</div>
+                        <input type="file" id="fileInput" accept=".txt,.md,.rst,.pdf" multiple style="margin-bottom: 1rem;">
+                        <div style="font-size: 0.9rem; color: #888; margin-bottom: 1rem;">
+                            Supported: PDF, TXT, MD, RST files
+                        </div>
+                        <button class="btn" onclick="uploadFiles()" id="uploadBtn">Upload & Process</button>
+                    </div>
+                    <div id="uploadStatus" style="display: none;"></div>
+                </div>
+                
+                <div class="documents-list" id="documentsList" style="display: none; background: #f8f9fa; border-radius: 10px; padding: 1.5rem; margin-top: 1rem;">
+                    <h4 style="margin-top: 0; color: #333;">📋 Your Documents</h4>
+                    <div id="documentsContent">Loading...</div>
+                </div>
+            </div>
+
+            <!-- Chat Interface -->
+            <div class="input-group">
+                <div class="input-row">
+                    <input type="text" 
+                           class="input-field" 
+                           id="userInput" 
+                           placeholder="Ask me anything... e.g., 'What are the HCAI principles?'"
+                           autofocus>
+                </div>
+                <div class="input-row">
+                    <select class="select-field" id="tone">
+                        <option value="friendly">Friendly</option>
+                        <option value="professional">Professional</option>
+                        <option value="casual">Casual</option>
+                    </select>
+                    <select class="select-field" id="length">
+                        <option value="brief">Brief</option>
+                        <option value="medium" selected>Medium</option>
+                        <option value="detailed">Detailed</option>
+                    </select>
+                    <label style="display: flex; align-items: center; gap: 0.5rem;">
+                        <input type="checkbox" id="useWeb"> Enable Web Search
+                    </label>
+                    <button class="btn" onclick="sendMessage()" id="sendBtn">Ask AI</button>
+                </div>
+            </div>
+            
+            <div class="response-container" id="responseContainer">
+                <div class="response-meta" id="responseMeta"></div>
+                <div class="response-text" id="responseText"></div>
+            </div>
+        </div>
+
+        <div class="features">
+            <div class="feature">
+                <div class="feature-icon">🔍</div>
+                <div class="feature-title">Smart Search</div>
+                <div class="feature-desc">Searches your local documents first</div>
+            </div>
+            <div class="feature">
+                <div class="feature-icon">🔒</div>
+                <div class="feature-title">Privacy First</div>
+                <div class="feature-desc">All processing happens locally</div>
+            </div>
+            <div class="feature">
+                <div class="feature-icon">🧠</div>
+                <div class="feature-title">Learns Preferences</div>
+                <div class="feature-desc">Adapts to your communication style</div>
+            </div>
+            <div class="feature">
+                <div class="feature-icon">💬</div>
+                <div class="feature-title">Transparent</div>
+                <div class="feature-desc">Explains how it reaches answers</div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Check system status on load
+        window.addEventListener('load', checkStatus);
+
+        async function checkStatus() {
+            try {
+                const response = await fetch('/api');
+                const data = await response.json();
+                
+                const statusDiv = document.getElementById('status');
+                if (data.status === 'healthy') {
+                    statusDiv.innerHTML = `
+                        <div class="status-healthy">
+                            ✅ System Healthy | Model: ${data.llm.model} | 
+                            Knowledge Base: ${data.knowledge_base.documents} documents | 
+                            Voice: ${data.voice.available ? 'Available' : 'Disabled'}
+                        </div>
+                    `;
+                } else {
+                    statusDiv.innerHTML = `<div style="color: #c62828;">❌ System Error</div>`;
+                }
+            } catch (error) {
+                document.getElementById('status').innerHTML = 
+                    `<div style="color: #c62828;">❌ Cannot connect to assistant</div>`;
+            }
+        }
+
+        // Handle Enter key
+        document.getElementById('userInput').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                sendMessage();
+            }
+        });
+
+        async function sendMessage() {
+            const userInput = document.getElementById('userInput').value.trim();
+            if (!userInput) return;
+
+            const sendBtn = document.getElementById('sendBtn');
+            const responseContainer = document.getElementById('responseContainer');
+            const responseMeta = document.getElementById('responseMeta');
+            const responseText = document.getElementById('responseText');
+
+            // Show loading state
+            sendBtn.disabled = true;
+            sendBtn.textContent = 'Thinking...';
+            responseContainer.style.display = 'block';
+            responseMeta.innerHTML = '<div class="loading">🤖 Processing your request...</div>';
+            responseText.innerHTML = '';
+
+            try {
+                const payload = {
+                    text: userInput,
+                    tone: document.getElementById('tone').value,
+                    length: document.getElementById('length').value,
+                    use_web: document.getElementById('useWeb').checked
+                };
+
+                const response = await fetch('/assist', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(payload)
+                });
+
+                if (response.ok) {
+                    const data = await response.json();
+                    
+                    // Display metadata
+                    responseMeta.innerHTML = `
+                        <strong>Task Type:</strong> ${data.task_type} | 
+                        <strong>Sources:</strong> ${data.meta.local_results} local + ${data.meta.web_results || 0} web | 
+                        <strong>Duration:</strong> ${data.meta.model_stats.duration}s<br>
+                        <strong>Reasoning:</strong> ${data.reasoning}<br>
+                        <strong>Next:</strong> ${data.next_suggestion}
+                    `;
+                    
+                    // Display response
+                    responseText.innerHTML = data.output_text.replace(/\n/g, '<br>');
+                    
+                } else {
+                    throw new Error(`HTTP ${response.status}`);
+                }
+
+            } catch (error) {
+                responseContainer.innerHTML = `
+                    <div class="error">
+                        ❌ Error: ${error.message}<br>
+                        Make sure the AI assistant is running in your terminal.
+                    </div>
+                `;
+            }
+
+            // Reset button
+            sendBtn.disabled = false;
+            sendBtn.textContent = 'Ask AI';
+        }
+
+        // Document upload functions
+        function toggleUpload() {
+            const container = document.getElementById('uploadContainer');
+            const btn = document.getElementById('toggleUploadBtn');
+            const documentsList = document.getElementById('documentsList');
+            
+            if (container.style.display === 'none') {
+                container.style.display = 'block';
+                documentsList.style.display = 'none';
+                btn.textContent = 'Hide Upload';
+            } else {
+                container.style.display = 'none';
+                btn.textContent = 'Add Documents';
+            }
+        }
+
+        async function uploadFiles() {
+            const fileInput = document.getElementById('fileInput');
+            const uploadBtn = document.getElementById('uploadBtn');
+            const uploadStatus = document.getElementById('uploadStatus');
+
+            if (!fileInput.files.length) {
+                uploadStatus.innerHTML = '<div class="upload-error">Please select at least one file</div>';
+                uploadStatus.style.display = 'block';
+                return;
+            }
+
+            uploadBtn.disabled = true;
+            uploadBtn.textContent = 'Processing...';
+            uploadStatus.style.display = 'block';
+            uploadStatus.innerHTML = '<div class="upload-progress">📤 Uploading and processing files...</div>';
+
+            try {
+                for (let i = 0; i < fileInput.files.length; i++) {
+                    const file = fileInput.files[i];
+                    const formData = new FormData();
+                    formData.append('file', file);
+
+                    uploadStatus.innerHTML += `<div class="upload-progress">Processing: ${file.name}</div>`;
+
+                    const response = await fetch('/upload', {
+                        method: 'POST',
+                        body: formData
+                    });
+
+                    const result = await response.json();
+
+                    if (result.success) {
+                        uploadStatus.innerHTML += `
+                            <div class="upload-success">
+                                ✅ ${file.name} - ${result.document.words} words processed
+                                <br>Knowledge Base now has ${result.knowledge_base.total_documents} documents
+                            </div>
+                        `;
+                    } else {
+                        uploadStatus.innerHTML += `
+                            <div class="upload-error">
+                                ❌ ${file.name} - ${result.error}
+                            </div>
+                        `;
+                    }
+                }
+
+                // Refresh status after upload
+                setTimeout(checkStatus, 1000);
+
+            } catch (error) {
+                uploadStatus.innerHTML += `
+                    <div class="upload-error">
+                        ❌ Upload failed: ${error.message}
+                    </div>
+                `;
+            }
+
+            // Reset form
+            uploadBtn.disabled = false;
+            uploadBtn.textContent = 'Upload & Process';
+            fileInput.value = '';
+        }
+
+        async function showDocuments() {
+            const container = document.getElementById('documentsList');
+            const content = document.getElementById('documentsContent');
+            const uploadContainer = document.getElementById('uploadContainer');
+
+            uploadContainer.style.display = 'none';
+            container.style.display = 'block';
+            content.innerHTML = 'Loading documents...';
+
+            try {
+                const response = await fetch('/documents');
+                const result = await response.json();
+
+                if (result.success) {
+                    if (result.documents.length === 0) {
+                        content.innerHTML = `
+                            <div style="text-align: center; color: #666; padding: 2rem;">
+                                📭 No documents uploaded yet
+                                <br><br>
+                                <button class="btn-small" onclick="toggleUpload()">Upload Your First Document</button>
+                            </div>
+                        `;
+                    } else {
+                        let html = `<div style="margin-bottom: 1rem; color: #666;">Total: ${result.total_count} documents</div>`;
+                        
+                        result.documents.forEach(doc => {
+                            html += `
+                                <div class="document-item">
+                                    <div style="font-weight: 600;">📄 ${doc.source}</div>
+                                    <div class="document-meta">
+                                        Type: ${doc.file_type || 'unknown'} | 
+                                        Size: ${doc.content_length || 0} characters | 
+                                        Added: ${doc.added_at ? new Date(doc.added_at).toLocaleDateString() : 'unknown'}
+                                    </div>
+                                </div>
+                            `;
+                        });
+                        
+                        content.innerHTML = html;
+                    }
+                } else {
+                    content.innerHTML = `<div class="upload-error">Failed to load documents: ${result.error}</div>`;
+                }
+            } catch (error) {
+                content.innerHTML = `<div class="upload-error">Error loading documents: ${error.message}</div>`;
+            }
+        }
+    </script>
+</body>
+</html>
