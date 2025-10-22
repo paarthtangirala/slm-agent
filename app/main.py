@@ -1331,10 +1331,22 @@ async def direct_text_to_speech(request: VoiceRequest):
         # Generate audio file
         audio_path = await voice_interface.text_to_speech(request)
         
+        # Check if file exists and has content
+        if not os.path.exists(audio_path):
+            raise Exception("Audio file was not created")
+        
+        file_size = os.path.getsize(audio_path)
+        logger.info(f"Generated audio file: {audio_path}, size: {file_size} bytes")
+        
+        if file_size == 0:
+            raise Exception("Audio file is empty")
+        
         # Read and encode as base64
         with open(audio_path, 'rb') as audio_file:
             audio_bytes = audio_file.read()
             audio_base64 = base64.b64encode(audio_bytes).decode('utf-8')
+        
+        logger.info(f"Base64 audio length: {len(audio_base64)} characters")
         
         # Clean up temporary file
         os.unlink(audio_path)
@@ -1346,6 +1358,23 @@ async def direct_text_to_speech(request: VoiceRequest):
         }
     except Exception as e:
         logger.error(f"Direct TTS error: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+@app.post("/tts/test")
+async def test_tts_download(request: VoiceRequest):
+    """Test TTS by generating downloadable audio file"""
+    try:
+        audio_path = await voice_interface.text_to_speech(request)
+        
+        # Return the audio file for download/testing
+        return FileResponse(
+            audio_path, 
+            media_type='audio/wav',
+            filename=f"test_tts.wav",
+            headers={"Cache-Control": "no-cache"}
+        )
+    except Exception as e:
+        logger.error(f"Test TTS error: {e}")
         raise HTTPException(status_code=500, detail=str(e))
 
 @app.post("/voice/speak")

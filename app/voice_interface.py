@@ -182,7 +182,7 @@ class VoiceInterface:
                 if not success:
                     try:
                         import subprocess
-                        cmd = ['say', '-o', audio_path, '--data-format=LEF32@22050']
+                        cmd = ['say', '-o', audio_path, '--data-format=LEI16@22050']
                         
                         # Add voice if specified
                         if request.voice != "default":
