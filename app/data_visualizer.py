@@ -378,7 +378,8 @@ class DataExplorerEngine:
                 elif config.chart_type == ChartType.PIE:
                     if config.aggregation == "count":
                         pie_data = data[config.x_column].value_counts().reset_index()
-                        fig = px.pie(pie_data, values=config.x_column, names='index', title=config.title)
+                        pie_data.columns = ['category', 'count']  # Rename columns for clarity
+                        fig = px.pie(pie_data, values='count', names='category', title=config.title)
                     else:
                         fig = px.pie(data, values=config.y_column, names=config.x_column, title=config.title)
                 
