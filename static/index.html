@@ -582,6 +582,10 @@
                     <span class="icon">🎤</span>
                     Voice Chat
                 </button>
+                <button class="mode-btn" data-mode="tts">
+                    <span class="icon">🔊</span>
+                    Direct TTS
+                </button>
                 <button class="mode-btn" data-mode="integrations">
                     <span class="icon">🔗</span>
                     Integrations
@@ -744,6 +748,12 @@
                 description: 'Voice-enabled AI interaction with speech synthesis',
                 placeholder: 'Click the microphone to start voice chat or type to hear speech...',
                 endpoint: '/voice/speak'
+            },
+            tts: {
+                title: 'Direct TTS',
+                description: 'Convert your text directly to speech - no AI processing',
+                placeholder: 'Type text to convert to speech instantly...',
+                endpoint: '/tts'
             },
             integrations: {
                 title: 'Integration Hub',
@@ -1161,6 +1171,39 @@
                                     await loadConversations();
                                     return; // Skip normal response handling
                                 }
+                            }
+                            break;
+                            
+                        case 'tts':
+                            // Direct TTS - Convert text to speech instantly
+                            response = await fetch('/tts', {
+                                method: 'POST',
+                                headers: { 'Content-Type': 'application/json' },
+                                body: JSON.stringify({
+                                    text: message,
+                                    voice: 'default',
+                                    speed: 1.0
+                                })
+                            });
+                            
+                            if (response.ok) {
+                                const ttsData = await response.json();
+                                
+                                // Create audio from base64 data
+                                const audio = new Audio(`data:${ttsData.contentType};base64,${ttsData.audioBase64}`);
+                                audio.controls = true;
+                                audio.autoplay = true;
+                                
+                                // Add simple TTS response
+                                const ttsHtml = `
+                                    <div>
+                                        <strong>🔊 Text-to-Speech:</strong><br>
+                                        "${message}"<br><br>
+                                        ${audio.outerHTML}
+                                    </div>
+                                `;
+                                addMessage(ttsHtml, false, true);
+                                return; // Skip normal response handling
                             }
                             break;
                             

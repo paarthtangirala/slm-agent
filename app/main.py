@@ -1322,6 +1322,32 @@ async def transcribe_audio(audio: UploadFile = File(...)):
         logger.error(f"Audio transcription error: {e}", exc_info=True)
         raise HTTPException(status_code=500, detail=str(e))
 
+@app.post("/tts")
+async def direct_text_to_speech(request: VoiceRequest):
+    """Direct TTS - Convert text to speech and return base64 audio"""
+    try:
+        import base64
+        
+        # Generate audio file
+        audio_path = await voice_interface.text_to_speech(request)
+        
+        # Read and encode as base64
+        with open(audio_path, 'rb') as audio_file:
+            audio_bytes = audio_file.read()
+            audio_base64 = base64.b64encode(audio_bytes).decode('utf-8')
+        
+        # Clean up temporary file
+        os.unlink(audio_path)
+        
+        return {
+            "audioBase64": audio_base64,
+            "contentType": "audio/wav",
+            "message": "TTS conversion successful"
+        }
+    except Exception as e:
+        logger.error(f"Direct TTS error: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
 @app.post("/voice/speak")
 async def text_to_speech(request: VoiceRequest):
     """Convert text to speech and return audio file"""
