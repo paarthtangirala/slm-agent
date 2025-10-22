@@ -1108,37 +1108,60 @@
                             break;
                             
                         case 'voice':
-                            // Handle text-to-speech
-                            response = await fetch('/voice/speak', {
+                            // First get AI chat response, then convert to speech
+                            const chatResponse = await fetch('/chat', {
                                 method: 'POST',
                                 headers: { 'Content-Type': 'application/json' },
                                 body: JSON.stringify({
-                                    text: message,
-                                    voice: 'default',
-                                    speed: 1.0
+                                    message: message,
+                                    mode: 'general',
+                                    conversation_id: currentConversationId
                                 })
                             });
                             
-                            if (response.ok) {
-                                // Create audio player for the response
-                                const audioBlob = await response.blob();
-                                const audioUrl = URL.createObjectURL(audioBlob);
-                                const audioPlayer = document.createElement('audio');
-                                audioPlayer.controls = true;
-                                audioPlayer.src = audioUrl;
-                                audioPlayer.autoplay = true;
+                            if (chatResponse.ok) {
+                                const chatData = await chatResponse.json();
                                 
-                                // Add response message with audio player
-                                const responseDiv = document.createElement('div');
-                                responseDiv.innerHTML = `
-                                    <div style="margin: 10px 0;">
-                                        <p><strong>🔊 AI Voice Response:</strong></p>
-                                        <p>"${message}"</p>
-                                        ${audioPlayer.outerHTML}
-                                    </div>
-                                `;
-                                addMessage(responseDiv.innerHTML, false);
-                                return; // Skip normal response handling
+                                // Update conversation ID
+                                if (chatData.conversation_id) {
+                                    currentConversationId = chatData.conversation_id;
+                                }
+                                
+                                // Convert AI response to speech
+                                const voiceResponse = await fetch('/voice/speak', {
+                                    method: 'POST',
+                                    headers: { 'Content-Type': 'application/json' },
+                                    body: JSON.stringify({
+                                        text: chatData.response,
+                                        voice: 'default',
+                                        speed: 1.0
+                                    })
+                                });
+                                
+                                if (voiceResponse.ok) {
+                                    // Create audio player for the response
+                                    const audioBlob = await voiceResponse.blob();
+                                    const audioUrl = URL.createObjectURL(audioBlob);
+                                    const audioPlayer = document.createElement('audio');
+                                    audioPlayer.controls = true;
+                                    audioPlayer.src = audioUrl;
+                                    audioPlayer.autoplay = true;
+                                    
+                                    // Add AI response with audio player
+                                    const responseDiv = document.createElement('div');
+                                    responseDiv.innerHTML = `
+                                        <div style="margin: 10px 0;">
+                                            <p><strong>🔊 AI Voice Response:</strong></p>
+                                            <p>${chatData.response}</p>
+                                            ${audioPlayer.outerHTML}
+                                        </div>
+                                    `;
+                                    addMessage(responseDiv.innerHTML, false);
+                                    
+                                    // Refresh conversation list
+                                    await loadConversations();
+                                    return; // Skip normal response handling
+                                }
                             }
                             break;
                             
