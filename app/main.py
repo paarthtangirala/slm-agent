@@ -2097,9 +2097,15 @@ async def analyze_sample_data(request: DataAnalysisRequest):
         # Analyze the data
         analysis = await data_explorer.analyze_data(data, request.data_type)
         
+        # Convert datetime columns to string for JSON serialization
+        sample_data = data.head(10).copy()
+        for col in sample_data.columns:
+            if sample_data[col].dtype.name.startswith('datetime'):
+                sample_data[col] = sample_data[col].dt.strftime('%Y-%m-%d %H:%M:%S')
+        
         return {
             "analysis": analysis,
-            "sample_data": data.head(10).to_dict('records'),  # First 10 rows
+            "sample_data": sample_data.to_dict('records'),  # First 10 rows
             "message": "Data analysis completed successfully"
         }
     except Exception as e:

@@ -34,6 +34,23 @@ from .ollama_client import call_ollama
 
 logger = logging.getLogger(__name__)
 
+def convert_numpy_types(obj):
+    """Convert numpy types to Python native types for JSON serialization"""
+    if isinstance(obj, np.integer):
+        return int(obj)
+    elif isinstance(obj, np.floating):
+        return float(obj)
+    elif isinstance(obj, np.ndarray):
+        return obj.tolist()
+    elif isinstance(obj, np.bool_):
+        return bool(obj)
+    elif isinstance(obj, dict):
+        return {k: convert_numpy_types(v) for k, v in obj.items()}
+    elif isinstance(obj, list):
+        return [convert_numpy_types(v) for v in obj]
+    else:
+        return obj
+
 class ChartType(str, Enum):
     LINE = "line"
     BAR = "bar" 
@@ -142,7 +159,7 @@ class DataExplorerEngine:
                     "rows": len(data),
                     "columns": len(data.columns),
                     "size_mb": data.memory_usage(deep=True).sum() / 1024 / 1024,
-                    "column_types": data.dtypes.to_dict()
+                    "column_types": {col: str(dtype) for col, dtype in data.dtypes.to_dict().items()}
                 },
                 "column_analysis": {},
                 "suggested_visualizations": [],
@@ -247,7 +264,7 @@ class DataExplorerEngine:
                     "config": {"correlation": True}
                 })
             
-            return analysis
+            return convert_numpy_types(analysis)
             
         except Exception as e:
             logger.error(f"Data analysis error: {e}")
