@@ -154,7 +154,14 @@ class VoiceInterface:
             # Try system TTS (macOS) first for better web compatibility
             try:
                 import subprocess
-                cmd = ['say', '-o', audio_path, '--data-format=LEI16@22050']
+                
+                # Create temporary AIFF file first (say command default)
+                temp_aiff = tempfile.NamedTemporaryFile(delete=False, suffix=".aiff")
+                temp_aiff.close()
+                aiff_path = temp_aiff.name
+                
+                # Generate speech as AIFF
+                cmd = ['say', '-o', aiff_path]
                 
                 # Add voice if specified
                 if request.voice != "default":
@@ -168,6 +175,28 @@ class VoiceInterface:
                 cmd.append(request.text)
                 
                 subprocess.run(cmd, check=True)
+                
+                # Convert AIFF to standard WAV using ffmpeg if available, otherwise use sox
+                try:
+                    # Try ffmpeg first
+                    subprocess.run(['ffmpeg', '-i', aiff_path, '-y', audio_path], 
+                                 check=True, capture_output=True)
+                    logger.info(f"Converted AIFF to WAV using ffmpeg")
+                except:
+                    try:
+                        # Try sox as fallback
+                        subprocess.run(['sox', aiff_path, audio_path], 
+                                     check=True, capture_output=True)
+                        logger.info(f"Converted AIFF to WAV using sox")
+                    except:
+                        # If no converter available, just copy the AIFF as WAV
+                        import shutil
+                        shutil.copy2(aiff_path, audio_path)
+                        logger.info(f"Used AIFF file directly as WAV")
+                
+                # Clean up temporary AIFF file
+                os.unlink(aiff_path)
+                
                 success = True
                 logger.info(f"Generated TTS with macOS say: {audio_path}")
                 
