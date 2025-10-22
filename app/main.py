@@ -436,13 +436,18 @@ async def chat_with_memory(request: ChatRequest):
         context = await memory_manager.get_conversation_context(conversation_id, max_messages=6)
         
         # Enhanced system prompt with context
-        system_prompt = f"""You are a helpful AI assistant. You have access to the conversation history below. 
-Use this context to provide more relevant and coherent responses. Refer to previous messages when appropriate.
+        system_prompt = f"""You are a helpful AI assistant that provides clear, concise responses. Always format your responses using:
+• Bullet points for lists and key information  
+• Short, readable paragraphs (2-3 sentences max)
+• Clear structure with headers when needed
+• Actionable takeaways when appropriate
 
 Conversation History:
 {context}
 
 Current mode: {request.mode}
+
+IMPORTANT: Keep responses concise and well-formatted. Use bullet points liberally to improve readability.
 """
         
         # Generate response based on mode
@@ -1372,7 +1377,7 @@ async def voice_chat_audio(audio_file: UploadFile = File(...), voice: str = "def
         logger.info(f"Transcribed: {user_text}")
         
         # Step 2: Process with AI chat
-        system_prompt = "You are a helpful AI assistant. Provide concise, clear responses suitable for voice interaction."
+        system_prompt = "You are a helpful AI assistant. Provide concise, clear responses in bullet points when possible. Keep responses brief and structured for voice interaction."
         response_text = await call_ollama(f"Human: {user_text}\n\nAssistant:", system_prompt)
         
         # Step 3: Convert response to speech
