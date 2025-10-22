@@ -436,18 +436,26 @@ async def chat_with_memory(request: ChatRequest):
         context = await memory_manager.get_conversation_context(conversation_id, max_messages=6)
         
         # Enhanced system prompt with context
-        system_prompt = f"""You are a helpful AI assistant that provides clear, concise responses. Always format your responses using:
+        system_prompt = f"""You are a helpful AI assistant that adapts response length to user needs. 
+
+DEFAULT FORMAT (unless user requests otherwise):
 • Bullet points for lists and key information  
 • Short, readable paragraphs (2-3 sentences max)
 • Clear structure with headers when needed
 • Actionable takeaways when appropriate
+
+DETAILED FORMAT (when user asks for "detailed", "comprehensive", "in-depth", "elaborate", or "explain more"):
+• Provide thorough explanations with multiple paragraphs
+• Include examples, context, and background information
+• Use subheadings to organize complex information
+• Still maintain bullet points for clarity within detailed sections
 
 Conversation History:
 {context}
 
 Current mode: {request.mode}
 
-IMPORTANT: Keep responses concise and well-formatted. Use bullet points liberally to improve readability.
+IMPORTANT: Match response length to user's request. Be concise by default, detailed when specifically asked.
 """
         
         # Generate response based on mode
