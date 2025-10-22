@@ -151,56 +151,57 @@ class VoiceInterface:
             # Try different TTS engines
             success = False
             
-            # Try pyttsx3 (cross-platform)
+            # Try system TTS (macOS) first for better web compatibility
             try:
-                import pyttsx3
-                engine = pyttsx3.init()
+                import subprocess
+                cmd = ['say', '-o', audio_path, '--data-format=LEI16@22050']
                 
-                # Configure voice settings
-                voices = engine.getProperty('voices')
-                if voices and request.voice != "default":
-                    # Try to find requested voice
-                    for voice in voices:
-                        if request.voice.lower() in voice.name.lower():
-                            engine.setProperty('voice', voice.id)
-                            break
+                # Add voice if specified
+                if request.voice != "default":
+                    cmd.extend(['-v', request.voice])
                 
-                # Set speech rate and volume
-                rate = engine.getProperty('rate')
-                engine.setProperty('rate', int(rate * request.speed))
+                # Add speech rate if specified
+                if request.speed != 1.0:
+                    cmd.extend(['-r', str(int(200 * request.speed))])
                 
-                # Generate speech
-                engine.save_to_file(request.text, audio_path)
-                engine.runAndWait()
+                # Add text to speak
+                cmd.append(request.text)
+                
+                subprocess.run(cmd, check=True)
                 success = True
-                logger.info(f"Generated TTS with pyttsx3: {audio_path}")
+                logger.info(f"Generated TTS with macOS say: {audio_path}")
                 
             except Exception as e:
-                logger.warning(f"pyttsx3 failed: {e}")
+                logger.warning(f"macOS say failed: {e}")
                 
-                # Fallback to system TTS (macOS)
-                if not success:
-                    try:
-                        import subprocess
-                        cmd = ['say', '-o', audio_path, '--data-format=LEI16@22050']
-                        
-                        # Add voice if specified
-                        if request.voice != "default":
-                            cmd.extend(['-v', request.voice])
-                        
-                        # Add rate if specified
-                        if request.speed != 1.0:
-                            words_per_minute = int(200 * request.speed)
-                            cmd.extend(['-r', str(words_per_minute)])
-                        
-                        cmd.append(request.text)
-                        
-                        result = subprocess.run(cmd, check=True, capture_output=True)
-                        success = True
-                        logger.info(f"Generated TTS with system say: {audio_path}")
-                        
-                    except Exception as e:
-                        logger.warning(f"System TTS failed: {e}")
+            # Fallback to pyttsx3 (cross-platform)
+            if not success:
+                try:
+                    import pyttsx3
+                    engine = pyttsx3.init()
+                    
+                    # Configure voice settings
+                    voices = engine.getProperty('voices')
+                    if voices and request.voice != "default":
+                        # Try to find requested voice
+                        for voice in voices:
+                            if request.voice.lower() in voice.name.lower():
+                                engine.setProperty('voice', voice.id)
+                                break
+                    
+                    # Set speech rate and volume
+                    rate = engine.getProperty('rate')
+                    engine.setProperty('rate', int(rate * request.speed))
+                    
+                    # Generate speech
+                    engine.save_to_file(request.text, audio_path)
+                    engine.runAndWait()
+                    success = True
+                    logger.info(f"Generated TTS with pyttsx3: {audio_path}")
+                    
+                except Exception as e:
+                    logger.warning(f"pyttsx3 failed: {e}")
+                
             
             if not success:
                 raise Exception("No TTS engine succeeded")

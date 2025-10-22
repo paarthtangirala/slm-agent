@@ -1188,11 +1188,33 @@
                             
                             if (response.ok) {
                                 const ttsData = await response.json();
+                                console.log('TTS Response:', { 
+                                    audioLength: ttsData.audioBase64.length, 
+                                    contentType: ttsData.contentType 
+                                });
                                 
-                                // Create audio from base64 data
-                                const audio = new Audio(`data:${ttsData.contentType};base64,${ttsData.audioBase64}`);
+                                // Create audio element with better error handling
+                                const audio = document.createElement('audio');
                                 audio.controls = true;
-                                audio.autoplay = true;
+                                audio.preload = 'auto';
+                                
+                                // Add error handling
+                                audio.addEventListener('error', (e) => {
+                                    console.error('Audio error:', e);
+                                    console.error('Audio error details:', audio.error);
+                                });
+                                
+                                audio.addEventListener('loadedmetadata', () => {
+                                    console.log('Audio loaded, duration:', audio.duration);
+                                });
+                                
+                                audio.addEventListener('canplay', () => {
+                                    console.log('Audio can play');
+                                    audio.play().catch(e => console.error('Play failed:', e));
+                                });
+                                
+                                // Set audio source with base64 data
+                                audio.src = `data:${ttsData.contentType};base64,${ttsData.audioBase64}`;
                                 
                                 // Add simple TTS response
                                 const ttsHtml = `
